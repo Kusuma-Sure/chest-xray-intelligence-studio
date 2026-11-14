@@ -1,0 +1,177 @@
+from __future__ import annotations
+from functools import lru_cache
+from pathlib import Path
+import io, time
+import numpy as np
+import torch
+from PIL import Image, UnidentifiedImageError
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+from .config import CHECKPOINT_DIR, FINDINGS, FRONTEND_DIR, MODEL_INFO, DEFAULT_THRESHOLD
+from .data import make_transform
+from .explain import explain_prediction
+from .graph_rag import retrieve_context
+from .metrics import calculate_metrics
+from .models import build_model, forward_logits
+
+app=FastAPI(title='CheXpert Capstone API',version='1.0.0',description='Research prototype for multi-label chest X-ray classification and visual attribution.')
+app.mount('/static',StaticFiles(directory=str(FRONTEND_DIR)),name='static')
+DEVICE=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+MAX_UPLOAD_BYTES=20*1024*1024
+
+
+def checkpoint_path(model_name: str) -> Path:
+    # Accept the shared-pipeline filename first, plus matching raw state_dict
+    # filenames from the earlier supplied DenseNet121 and CapsNet notebooks.
+    candidates = {
+        'vit': [CHECKPOINT_DIR/'vit.pt'],
+        'densenet': [CHECKPOINT_DIR/'densenet.pt', CHECKPOINT_DIR/'best_densenet121_chexpert.pth'],
+        'capsnet': [CHECKPOINT_DIR/'capsnet.pt', CHECKPOINT_DIR/'best_capsnet_10epoch.pth',
+                    CHECKPOINT_DIR/'best_capsnet_weighted.pth', CHECKPOINT_DIR/'best_capsnet_chexpert.pth'],
+        'gat': [CHECKPOINT_DIR/'gat.pt'],
+    }
+    for candidate in candidates[model_name]:
+        if candidate.is_file():
+            return candidate
+    return candidates[model_name][0]
+
+
+def model_status(model_name: str) -> dict:
+    info=MODEL_INFO[model_name]
+    path=checkpoint_path(model_name)
+    exists=path.is_file()
+    return {'id':model_name,'name':info['name'],'family':info['family'],
+            'checkpoint':str(path),'checkpoint_file':path.name,
+            'available':exists,'status':'Checkpoint found' if exists else 'Checkpoint missing',
+            'reason':('Checkpoint file exists; compatibility is checked at first load.' if exists else f"Train this model first, then copy {info['checkpoint']} into checkpoints/.")}
+
+
+def _read_checkpoint(path: Path, device):
+    try:
+        return torch.load(path,map_location=device,weights_only=True)
+    except TypeError:
+        return torch.load(path,map_location=device)
+
+
+@lru_cache(maxsize=4)
+def load_model(model_name: str):
+    path=checkpoint_path(model_name)
+    if not path.is_file():
+        raise FileNotFoundError(f"Checkpoint missing: {path}. Train {model_name} in the supplied Colab notebook first.")
+    model=build_model(model_name,pretrained=False)
+    payload=_read_checkpoint(path,DEVICE)
+    if isinstance(payload,dict) and 'model_state_dict' in payload:
+        if payload.get('model_name') and payload['model_name'] != model_name:
+            raise RuntimeError(f"Checkpoint is for '{payload['model_name']}', not '{model_name}'.")
+        labels=payload.get('labels')
+        if labels and list(labels)!=FINDINGS:
+            raise RuntimeError('Checkpoint label order does not match backend/config.py. Re-train using this project package.')
+        state=payload['model_state_dict']
+    elif isinstance(payload,dict) and 'state_dict' in payload:
+        state=payload['state_dict']
+    else:
+        state=payload
+    try:
+        model.load_state_dict(state,strict=True)
+    except Exception as exc:
+        raise RuntimeError(f"Checkpoint architecture/shape mismatch for {model_name}: {exc}") from exc
+    model.to(DEVICE).eval()
+    return model
+
+
+@app.get('/')
+def home():
+    return FileResponse(FRONTEND_DIR/'index.html')
+
+
+@app.get('/api/health')
+def health():
+    statuses=[model_status(k) for k in MODEL_INFO]
+    return {'status':'online','device':str(DEVICE),'cuda_available':torch.cuda.is_available(),
+            'models_with_checkpoints':sum(1 for s in statuses if s['available']),
+            'models_total':len(statuses),'message':'API is ready. Prediction requires a compatible trained checkpoint.'}
+
+
+@app.get('/api/models')
+def models():
+    return {'models':[model_status(k) for k in MODEL_INFO]}
+
+
+@app.get('/api/benchmarks')
+def benchmarks():
+    result=[]
+    for key,info in MODEL_INFO.items():
+        path=CHECKPOINT_DIR/f'{key}_summary.json'
+        if path.is_file():
+            import json
+            try:
+                summary=json.loads(path.read_text(encoding='utf-8'))
+            except (ValueError,OSError):
+                summary={}
+            result.append({'id':key,'name':info['name'],'status':'Measured on validation split','metrics':summary})
+        else:
+            result.append({'id':key,'name':info['name'],'status':'No local evaluation file','metrics':None})
+    return {'benchmarks':result,'note':'Only metrics generated by this project training/evaluation pipeline are shown. No default or synthetic benchmark values are used.'}
+
+
+@app.post('/api/predict')
+async def predict(image: UploadFile=File(...), model: str=Query('densenet'),
+                  threshold: float=Query(DEFAULT_THRESHOLD,ge=0.0,le=1.0),
+                  explain: bool=Query(True)):
+    if model not in MODEL_INFO:
+        raise HTTPException(status_code=400,detail=f"Unknown model '{model}'. Choose: {', '.join(MODEL_INFO)}")
+    if image.content_type not in {'image/jpeg','image/png','image/jpg','image/webp'}:
+        raise HTTPException(status_code=415,detail='Upload a JPG, JPEG, PNG or WEBP chest X-ray image.')
+    raw=await image.read()
+    if not raw: raise HTTPException(status_code=400,detail='The uploaded image is empty.')
+    if len(raw)>MAX_UPLOAD_BYTES: raise HTTPException(status_code=413,detail='Image exceeds the 20 MB upload limit.')
+    try:
+        original=Image.open(io.BytesIO(raw)).convert('RGB')
+        original.verify()
+        original=Image.open(io.BytesIO(raw)).convert('RGB')
+    except (UnidentifiedImageError,OSError,ValueError):
+        raise HTTPException(status_code=400,detail='The uploaded file is not a valid image.')
+    try:
+        loaded=load_model(model)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503,detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500,detail=f'Model loading failed: {exc}')
+    transform=make_transform(model,train=False)
+    model_input=transform(original.convert('L' if model=='capsnet' else 'RGB')).unsqueeze(0).to(DEVICE)
+    started=time.perf_counter()
+    try:
+        if explain:
+            with torch.no_grad():
+                logits=forward_logits(loaded,model_input)
+                probabilities=torch.sigmoid(logits)[0].detach().cpu().numpy()
+        else:
+            with torch.inference_mode():
+                logits=forward_logits(loaded,model_input)
+                probabilities=torch.sigmoid(logits)[0].detach().cpu().numpy()
+    except Exception as exc:
+        raise HTTPException(status_code=500,detail=f'Inference failed: {exc}')
+    elapsed_ms=(time.perf_counter()-started)*1000
+    rows=[{'finding':label,'probability':float(prob),'positive':bool(prob>=threshold)} for label,prob in zip(FINDINGS,probabilities)]
+    positives=[r for r in rows if r['positive']]
+    explanation={'available':False,'reason':'Explainability was not requested.'}
+    if explain:
+        top_idx=int(np.argmax(probabilities))
+        try:
+            explanation=explain_prediction(loaded,model,model_input,original,top_idx)
+        except Exception as exc:
+            explanation={'available':False,'reason':f'Attribution failed: {exc}'}
+    graph=retrieve_context(model,[x['finding'] for x in positives])
+    return {'model':model,'model_name':MODEL_INFO[model]['name'],'threshold':threshold,
+            'processing_time_ms':round(elapsed_ms,2),'input_width':original.width,'input_height':original.height,
+            'findings':rows,'positive_findings':positives,
+            'top_five':sorted(rows,key=lambda x:x['probability'],reverse=True)[:5],
+            'explanation':explanation,'graph_context':graph,
+            'disclaimer':'Research prototype only. Probabilities are model outputs, not a diagnosis.'}
+
+
+@app.get('/api/docs-info')
+def docs_info():
+    return {'openapi':'/docs','health':'/api/health','models':'/api/models','benchmarks':'/api/benchmarks','predict':'POST /api/predict?model=densenet&threshold=0.5&explain=true'}
