@@ -207,10 +207,13 @@ def create_four_panel_grid(
     }.get(model_name.lower(), "Model Attribution")
     axes[2].set_title(f"Panel 3: {method_name}", color="#e6edf3", fontsize=11, pad=8, fontweight="bold")
 
+    from .metrics import calculate_psnr
+    psnr_result = calculate_psnr(orig_np, np.array(panel_4_fused_raw))
+
     # Panel 4: Fused Diagnostic Visual Overlay
     axes[3].imshow(np.array(panel_4_img))
     axes[3].set_title(
-        f"Panel 4: Anatomically Fused Overlay\n{finding_name} ({probability:.1%})",
+        f"Panel 4: Anatomically Fused Overlay\n{finding_name} ({probability:.1%}) | PSNR: {psnr_result['psnr_db']} dB",
         color="#00d2ff",
         fontsize=11,
         pad=8,
@@ -237,5 +240,8 @@ def create_four_panel_grid(
         "bounding_boxes": bounding_boxes,
         "finding": finding_name,
         "probability": float(probability),
+        "psnr_db": psnr_result["psnr_db"],
+        "psnr_mse": psnr_result["mse"],
+        "psnr_quality": psnr_result["quality"],
     }
 

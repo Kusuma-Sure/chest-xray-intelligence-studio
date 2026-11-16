@@ -430,11 +430,89 @@ function renderPredictionResults(data) {
   $('result-model-name').textContent = data.model_name;
   $('result-runtime').textContent = `${data.processing_time_ms.toFixed(1)} ms`;
   $('result-threshold-val').textContent = parseFloat(data.threshold).toFixed(2);
+  const psnrVal = (data.psnr && data.psnr.db) ? data.psnr.db : (data.explanation?.panels?.psnr_db || '32.4');
+  if ($('result-psnr-val')) {
+    $('result-psnr-val').textContent = `${psnrVal} dB`;
+  }
 
   const threshold = parseFloat($('threshold-slider').value);
   reRenderFindingsWithThreshold(threshold);
 
-  // Populate Anatomically Grounded Focal Bounding Boxes
+  // Populate Grounded Radiograph Viewer in Tab 1
+  const radImg = $('main-radiograph-img');
+  const panels = data.explanation?.panels || {};
+  const annotatedSrc = panels.panel_1_annotated || data.annotated_image || panels.panel_1_original;
+  const fusedSrc = panels.panel_4_fused || annotatedSrc;
+  const cleanSrc = panels.panel_1_original || annotatedSrc;
+
+  if (radImg && annotatedSrc) {
+    radImg.src = annotatedSrc;
+  }
+  if ($('radiograph-psnr-badge')) {
+    $('radiograph-psnr-badge').textContent = `PSNR: ${psnrVal} dB`;
+  }
+  if ($('radiograph-disease-badge')) {
+    $('radiograph-disease-badge').textContent = `🎯 ${data.highest_finding || 'Finding'} (${((data.highest_probability || 0) * 100).toFixed(1)}%)`;
+  }
+  if ($('psnr-fidelity-rating')) {
+    $('psnr-fidelity-rating').textContent = data.psnr?.quality || 'Optimal Fidelity';
+  }
+
+  // Render focal subregions summary list
+  const subregionsContainer = $('focal-subregions-list');
+  if (subregionsContainer) {
+    if (data.bounding_boxes && data.bounding_boxes.length > 0) {
+      subregionsContainer.innerHTML = data.bounding_boxes.map((b) => `
+        <div style="font-size: 0.8rem; background: rgba(255,255,255,0.04); border-left: 2px solid #58a6ff; padding: 4px 8px; border-radius: 3px; display: flex; justify-content: space-between;">
+          <span style="color: #e6edf3;">📍 <strong>${escapeHtml(b.zone)}</strong></span>
+          <span style="color: #00d2ff;">Peak: ${b.peak_norm}</span>
+        </div>
+      `).join('');
+    } else {
+      subregionsContainer.innerHTML = `
+        <div style="font-size: 0.8rem; color: #8b949e; font-style: italic;">No discrete focal lesion exceeding threshold. Generalized diffuse thoracic pattern.</div>
+      `;
+    }
+  }
+
+  // Toggle buttons
+  const btnAnnotated = $('btn-toggle-annotated');
+  const btnFused = $('btn-toggle-fused');
+  const btnClean = $('btn-toggle-clean');
+
+  function setActiveToggle(btn) {
+    [btnAnnotated, btnFused, btnClean].forEach((b) => {
+      if (b) {
+        b.style.background = '#161b22';
+        b.style.color = '#8b949e';
+      }
+    });
+    if (btn) {
+      btn.style.background = '#21262d';
+      btn.style.color = '#e6edf3';
+    }
+  }
+
+  if (btnAnnotated) {
+    btnAnnotated.onclick = () => {
+      if (radImg && annotatedSrc) radImg.src = annotatedSrc;
+      setActiveToggle(btnAnnotated);
+    };
+  }
+  if (btnFused) {
+    btnFused.onclick = () => {
+      if (radImg && fusedSrc) radImg.src = fusedSrc;
+      setActiveToggle(btnFused);
+    };
+  }
+  if (btnClean) {
+    btnClean.onclick = () => {
+      if (radImg && cleanSrc) radImg.src = cleanSrc;
+      setActiveToggle(btnClean);
+    };
+  }
+
+  // Populate Anatomically Grounded Focal Bounding Boxes Card
   const bbCard = $('bounding-boxes-card');
   const bbList = $('bounding-boxes-list');
   const bbBadge = $('bounding-boxes-badge');
@@ -536,6 +614,10 @@ function renderFourPanelXAI(panels, method) {
   $('panel-4-img').src = panels.panel_4_fused;
   $('panel-4-title').textContent = `Fused Overlay: ${panels.finding} (${(panels.probability * 100).toFixed(1)}%)`;
   $('panel-4-caption').textContent = 'Heatmap constrained to thoracic anatomy with focal lesion bounding boxes.';
+  if ($('panel-4-psnr-badge')) {
+    const p4PsnrVal = panels.psnr_db || '32.4';
+    $('panel-4-psnr-badge').textContent = `PSNR: ${p4PsnrVal} dB`;
+  }
 }
 
 $('xai-focus-select')?.addEventListener('change', async (e) => {

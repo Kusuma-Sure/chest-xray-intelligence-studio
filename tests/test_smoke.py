@@ -37,3 +37,18 @@ def test_architecture_output_shapes():
     model=build_model('capsnet',pretrained=False).eval()
     with torch.no_grad(): y=forward_logits(model,x_gray)
     assert tuple(y.shape)==(1,13)
+
+
+def test_calculate_psnr():
+    from backend.metrics import calculate_psnr
+    img1 = np.ones((100, 100, 3), dtype=np.uint8) * 128
+    img2 = np.ones((100, 100, 3), dtype=np.uint8) * 128
+    res_identical = calculate_psnr(img1, img2)
+    assert res_identical["psnr_db"] >= 50.0
+    assert "Optimal" in res_identical["quality"]
+
+    # Slight perturbation (noise floor)
+    img_noisy = np.clip(img1.astype(float) + np.random.normal(0, 3, img1.shape), 0, 255).astype(np.uint8)
+    res_noisy = calculate_psnr(img1, img_noisy)
+    assert 28.0 <= res_noisy["psnr_db"] <= 55.0
+    assert res_noisy["mse"] > 0

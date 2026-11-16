@@ -55,18 +55,25 @@ class OODDetector:
         gray_array = cv2.cvtColor(rgb_array.astype(np.uint8), cv2.COLOR_RGB2GRAY).astype(np.float32)
 
         # 2. Chrominance / Color Saturation Check
-        # Genuine chest X-rays are monochromatic greyscale with negligible HSV saturation (<0.06).
-        # Natural photographs (cars, animals, food, scenery) exhibit strong chromaticity.
+        # Genuine chest X-rays are monochromatic greyscale or exhibit a subtle film/lightbox tint (amber or blue, mean saturation < 0.28).
+        # Natural photographs (cars, animals, food, scenery) exhibit strong multi-hue chromaticity and high saturation (>0.32).
         hsv = cv2.cvtColor(rgb_array.astype(np.uint8), cv2.COLOR_RGB2HSV).astype(np.float32)
         saturation = hsv[:, :, 1] / 255.0  # Range [0, 1]
         mean_saturation = float(np.mean(saturation))
         saturation_p90 = float(np.percentile(saturation, 90))
+        high_sat_fraction = float(np.mean(saturation > 0.35))
 
-        if mean_saturation > 0.10 or saturation_p90 > 0.25:
+        is_true_color_photo = (
+            mean_saturation > 0.32
+            or (mean_saturation > 0.22 and high_sat_fraction > 0.35)
+            or (saturation_p90 > 0.65 and high_sat_fraction > 0.25)
+        )
+
+        if is_true_color_photo:
             score = min(1.0, 0.65 + mean_saturation * 0.35)
             return self._rejection_result(
                 round(score, 4),
-                f"Significant color saturation detected (mean saturation: {mean_saturation:.2f}), indicating a non-medical photograph (such as a vehicle, animal, or outdoor scene).",
+                f"Significant color saturation detected (mean saturation: {mean_saturation:.2f}, high-sat fraction: {high_sat_fraction:.1%}), indicating a non-medical photograph (such as a vehicle, animal, or outdoor scene).",
                 "Input rejected: This image contains significant color saturation and appears to be a natural photograph, not a monochromatic chest radiograph. No disease predictions were generated."
             )
 
