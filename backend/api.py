@@ -70,6 +70,25 @@ def get_benchmarks():
     return get_benchmark_register()
 
 
+@app.get("/api/models/analysis")
+def get_models_analysis():
+    """Returns detailed diagnostic evaluation, optimism bias, hidden dependencies, and unclear scope for each model."""
+    analysis = {}
+    for key, info in MODEL_INFO.items():
+        analysis[key] = {
+            "id": key,
+            "name": info["name"],
+            "family": info["family"],
+            "primary": info["primary"],
+            "recommended_threshold": info.get("recommended_threshold", 0.50),
+            "explanation_method": info["explanation_method"],
+            "optimism_bias": info.get("optimism_bias", {}),
+            "hidden_dependencies": info.get("hidden_dependencies", {}),
+            "unclear_scope": info.get("unclear_scope", {}),
+        }
+    return {"analysis": analysis}
+
+
 @app.get("/api/graph-evidence")
 def get_finding_evidence(finding: str = Query("Lung Opacity")):
     """Returns targeted Biomedical Knowledge Graph evidence and citations for any finding."""
@@ -88,11 +107,11 @@ def get_finding_evidence(finding: str = Query("Lung Opacity")):
 async def predict_endpoint(
     image: list[UploadFile] = File(...),
     model: str = Query("vit"),
-    threshold: float = Query(DEFAULT_THRESHOLD, ge=0.05, le=0.95),
+    threshold: Optional[float] = Query(None, ge=0.05, le=0.95),
     target_finding_idx: Optional[int] = Query(None),
     explain: bool = Query(True),
 ):
-    """Executes multi-label inference on 1 to 5 uploaded radiographs with OOD detection and XAI."""
+    """Executes multi-label inference on 1 to 5 uploaded radiographs with OOD detection, anatomical masking, and XAI."""
     model_key = model.lower().strip()
     if model_key not in MODEL_INFO:
         raise HTTPException(status_code=400, detail=f"Invalid model '{model}'. Choose from: {list(MODEL_INFO.keys())}")

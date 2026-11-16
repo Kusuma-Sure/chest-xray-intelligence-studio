@@ -42,17 +42,46 @@ def apply_colormap_to_heatmap(heatmap: np.ndarray, target_size: tuple[int, int])
     return color_rgb
 
 
+from .segmentation import (
+    draw_bounding_boxes_on_image,
+    extract_anatomical_bounding_boxes,
+    segment_chest_anatomy,
+)
+
+
 def create_fused_overlay(
     original_image: Image.Image,
     heatmap: np.ndarray,
+    target_mask: np.ndarray | None = None,
     alpha: float = 0.45,
     beta: float = 0.55,
 ) -> Image.Image:
-    """Blends the original radiograph with the colorized attribution heatmap."""
+    """Blends the original radiograph with the colorized attribution heatmap.
+
+    Optionally applies an anatomical soft-mask to suppress non-thoracic background artifacts.
+    """
     w, h = original_image.size
     orig_rgb = np.array(original_image.convert("RGB"), dtype=np.uint8)
-    color_map = apply_colormap_to_heatmap(heatmap, (w, h))
 
+    # Resize raw heatmap to match image dimensions (w, h)
+    if heatmap.shape != (h, w):
+        heatmap_resized = cv2.resize(heatmap.astype(np.float32), (w, h), interpolation=cv2.INTER_CUBIC)
+        heatmap_resized = np.clip(heatmap_resized, 0.0, 1.0)
+    else:
+        heatmap_resized = heatmap
+
+    if target_mask is not None:
+        if target_mask.shape != (h, w):
+            target_mask = cv2.resize(target_mask, (w, h), interpolation=cv2.INTER_NEAREST)
+        mask_float = target_mask.astype(np.float32) / 255.0
+        # Smooth mask edge slightly
+        mask_smooth = cv2.GaussianBlur(mask_float, (9, 9), 0)
+        # Apply soft anatomical gating
+        gated_heatmap = heatmap_resized * (0.15 + 0.85 * mask_smooth)
+    else:
+        gated_heatmap = heatmap_resized
+
+    color_map = apply_colormap_to_heatmap(gated_heatmap, (w, h))
     blended = cv2.addWeighted(orig_rgb, beta, color_map, alpha, 0)
     return Image.fromarray(blended)
 
@@ -64,78 +93,126 @@ def create_four_panel_grid(
     model_name: str,
     finding_name: str,
     probability: float,
+    anatomy: dict | None = None,
+    bounding_boxes: list[dict] | None = None,
 ) -> dict:
     """Constructs the comprehensive 4-panel diagnostic visual explanation grid.
 
+    Panels:
+        - Panel 1: Original Chest Radiograph with Multi-Focal Bounding Boxes
+        - Panel 2: Anatomical Segmentation Mask (Semantic multi-compartment overlay)
+        - Panel 3: Model-Specific Attribution Heatmap (Grad-CAM / Grad-CAM++ / ViT Grad×Act / GAT Regional)
+        - Panel 4: Fused Diagnostic Visual Overlay (Grounded to Anatomy with Bounding Boxes)
+
     Returns:
-        dict containing base64 data URLs for:
-            - panel_1_original
-            - panel_2_heatmap
-            - panel_3_rollout (or secondary view)
-            - panel_4_fused
-            - composite_grid (the unified 4-panel figure)
+        dict containing base64 data URLs for panels and metadata.
     """
     w, h = original_image.size
     orig_rgb = original_image.convert("RGB")
 
-    # Panel 1: Original Radiograph
-    panel_1_url = image_to_data_url(orig_rgb)
+    # 1. Segment anatomy if not provided
+    if anatomy is None:
+        anatomy = segment_chest_anatomy(original_image)
 
-    # Panel 2: Model-specific Heatmap
-    color_heatmap = apply_colormap_to_heatmap(heatmap_raw, (w, h))
-    panel_2_img = Image.fromarray(color_heatmap)
+    # 2. Extract bounding boxes if not provided
+    if bounding_boxes is None:
+        bounding_boxes = extract_anatomical_bounding_boxes(
+            heatmap=heatmap_raw,
+            anatomy=anatomy,
+            finding_name=finding_name,
+            probability=probability,
+            orig_size=(w, h),
+        )
+
+    # Panel 1: Original Clean & Annotated Radiograph
+    panel_1_clean_url = image_to_data_url(orig_rgb)
+    annotated_img = draw_bounding_boxes_on_image(orig_rgb, bounding_boxes)
+    panel_1_annotated_url = image_to_data_url(annotated_img)
+
+    # Panel 2: Semantic Multi-Compartment Anatomical Mask
+    # Color-coded overlay (Blue = Lung Parenchyma, Red = Cardiac Silhouette, Green = Perihilar Zone)
+    semantic_overlay = anatomy.get("semantic_overlay")
+    if semantic_overlay is None:
+        semantic_overlay = np.zeros((h, w, 3), dtype=np.uint8)
+    # Blend with original radiograph for translucent anatomical reference
+    orig_np = np.array(orig_rgb, dtype=np.uint8)
+    anatomy_fused = cv2.addWeighted(orig_np, 0.55, semantic_overlay, 0.45, 0)
+    panel_2_img = Image.fromarray(anatomy_fused)
     panel_2_url = image_to_data_url(panel_2_img)
 
-    # Panel 3: ViT Attention Rollout (or GAT/CapsNet structural secondary view)
-    if rollout_raw is not None:
-        color_rollout = apply_colormap_to_heatmap(rollout_raw, (w, h))
-        panel_3_img = Image.fromarray(color_rollout)
-        panel_3_title = "ViT Attention Rollout (12 Layers)"
-        panel_3_available = True
-    else:
-        # Generate edge-enhanced anatomical structure view for CNN / GAT / CapsNet
-        orig_gray = np.array(original_image.convert("L"))
-        edges = cv2.Canny(orig_gray, 50, 150)
-        edges_color = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
-        panel_3_img = Image.fromarray(edges_color)
-        panel_3_title = "Anatomical Edge Boundaries (Structural Reference)"
-        panel_3_available = False
+    # Binary pure lung mask (matching user reference Image 2)
+    binary_lung_img = Image.fromarray(anatomy.get("lung_mask", np.zeros((h, w), dtype=np.uint8)))
+    panel_2_binary_url = image_to_data_url(binary_lung_img)
+
+    # Panel 3: Model-Specific Attribution Heatmap
+    color_heatmap = apply_colormap_to_heatmap(heatmap_raw, (w, h))
+    panel_3_img = Image.fromarray(color_heatmap)
     panel_3_url = image_to_data_url(panel_3_img)
 
     # Panel 4: Fused Diagnostic Visual Overlay
-    panel_4_img = create_fused_overlay(original_image, heatmap_raw, alpha=0.42, beta=0.58)
+    # Select anatomical mask for gating
+    finding_lower = finding_name.lower()
+    if "cardi" in finding_lower:
+        gating_mask = anatomy.get("cardiac_mask")
+    elif "perihilar" in finding_lower or "edema" in finding_lower:
+        gating_mask = cv2.bitwise_or(anatomy.get("lung_mask", np.zeros((h, w), dtype=np.uint8)),
+                                     anatomy.get("perihilar_mask", np.zeros((h, w), dtype=np.uint8)))
+    else:
+        gating_mask = anatomy.get("lung_mask")
+
+    panel_4_fused_raw = create_fused_overlay(original_image, heatmap_raw, target_mask=gating_mask, alpha=0.45, beta=0.55)
+    # Draw bounding boxes onto Panel 4 fused overlay as well
+    panel_4_img = draw_bounding_boxes_on_image(panel_4_fused_raw, bounding_boxes, color=(255, 230, 0))
     panel_4_url = image_to_data_url(panel_4_img)
 
-    # Generate unified composite figure (1 row, 4 columns)
-    fig, axes = plt.subplots(1, 4, figsize=(20, 5), facecolor="#0d1117")
+    # ViT rollout or secondary edge view for optional reference
+    if rollout_raw is not None:
+        color_rollout = apply_colormap_to_heatmap(rollout_raw, (w, h))
+        rollout_img = Image.fromarray(color_rollout)
+        rollout_url = image_to_data_url(rollout_img)
+        rollout_title = "ViT Attention Rollout (12 Layers)"
+        rollout_available = True
+    else:
+        orig_gray = np.array(original_image.convert("L"))
+        edges = cv2.Canny(orig_gray, 50, 150)
+        edges_color = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
+        rollout_img = Image.fromarray(edges_color)
+        rollout_url = image_to_data_url(rollout_img)
+        rollout_title = "Anatomical Edge Boundaries"
+        rollout_available = False
+
+    # Generate unified 4-panel diagnostic composite figure (1 row, 4 columns)
+    fig, axes = plt.subplots(1, 4, figsize=(22, 5.5), facecolor="#0d1117")
     for ax in axes:
         ax.axis("off")
         ax.set_facecolor("#0d1117")
 
-    # Panel 1
-    axes[0].imshow(np.array(orig_rgb))
-    axes[0].set_title("Panel 1: Original X-ray", color="#e6edf3", fontsize=12, pad=8, fontweight="bold")
+    # Panel 1: Original with Focal Bounding Boxes
+    axes[0].imshow(np.array(annotated_img))
+    box_count = len(bounding_boxes)
+    box_info = f" ({box_count} Focal Lesion{'s' if box_count != 1 else ''})" if box_count > 0 else ""
+    axes[0].set_title(f"Panel 1: Grounded Bounding Boxes{box_info}", color="#e6edf3", fontsize=11, pad=8, fontweight="bold")
 
-    # Panel 2
-    axes[1].imshow(color_heatmap)
+    # Panel 2: Anatomical Segmentation Mask
+    axes[1].imshow(anatomy_fused)
+    axes[1].set_title("Panel 2: Anatomical Segmentation Mask\nBlue: Lungs | Red: Heart | Green: Hila", color="#58a6ff", fontsize=11, pad=8, fontweight="bold")
+
+    # Panel 3: Model-Specific Attribution Heatmap
+    axes[2].imshow(color_heatmap)
     method_name = {
         "vit": "ViT Grad × Activation",
         "densenet": "DenseNet121 Grad-CAM",
         "capsnet": "CapsNet Grad-CAM++",
         "gat": "GAT Regional Attention",
     }.get(model_name.lower(), "Model Attribution")
-    axes[1].set_title(f"Panel 2: {method_name}", color="#e6edf3", fontsize=12, pad=8, fontweight="bold")
+    axes[2].set_title(f"Panel 3: {method_name}", color="#e6edf3", fontsize=11, pad=8, fontweight="bold")
 
-    # Panel 3
-    axes[2].imshow(np.array(panel_3_img))
-    axes[2].set_title(f"Panel 3: {panel_3_title}", color="#e6edf3", fontsize=12, pad=8, fontweight="bold")
-
-    # Panel 4
+    # Panel 4: Fused Diagnostic Visual Overlay
     axes[3].imshow(np.array(panel_4_img))
     axes[3].set_title(
-        f"Panel 4: Fused Overlay\n{finding_name} ({probability:.1%})",
+        f"Panel 4: Anatomically Fused Overlay\n{finding_name} ({probability:.1%})",
         color="#00d2ff",
-        fontsize=12,
+        fontsize=11,
         pad=8,
         fontweight="bold",
     )
@@ -147,13 +224,18 @@ def create_four_panel_grid(
     composite_url = f"data:image/png;base64,{base64.b64encode(buf.getvalue()).decode('ascii')}"
 
     return {
-        "panel_1_original": panel_1_url,
-        "panel_2_heatmap": panel_2_url,
-        "panel_3_rollout": panel_3_url,
-        "panel_3_title": panel_3_title,
-        "panel_3_available": panel_3_available,
+        "panel_1_original": panel_1_clean_url,
+        "panel_1_annotated": panel_1_annotated_url,
+        "panel_2_anatomy": panel_2_url,
+        "panel_2_binary_lung": panel_2_binary_url,
+        "panel_2_heatmap": panel_3_url,
+        "panel_3_rollout": rollout_url,
+        "panel_3_title": rollout_title,
+        "panel_3_available": rollout_available,
         "panel_4_fused": panel_4_url,
         "composite_grid": composite_url,
+        "bounding_boxes": bounding_boxes,
         "finding": finding_name,
         "probability": float(probability),
     }
+

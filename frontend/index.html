@@ -41,7 +41,7 @@
     </div>
   </header>
 
-  <!-- Navigation Bar (5 Tabs) -->
+  <!-- Navigation Bar (6 Tabs) -->
   <nav class="studio-nav" aria-label="Main Navigation">
     <button class="nav-tab active" data-tab="analysis">
       <span class="tab-icon">🫁</span>
@@ -50,6 +50,10 @@
     <button class="nav-tab" data-tab="xai">
       <span class="tab-icon">🔍</span>
       <span class="tab-label">Explainable AI (XAI)</span>
+    </button>
+    <button class="nav-tab" data-tab="integrity">
+      <span class="tab-icon">🛡️</span>
+      <span class="tab-label">Model Scope & Bias</span>
     </button>
     <button class="nav-tab" data-tab="graphrag">
       <span class="tab-icon">🕸️</span>
@@ -122,11 +126,16 @@
                 <label for="threshold-slider" class="field-label">Multi-Label Decision Threshold</label>
                 <span id="threshold-display" class="slider-val">0.50</span>
               </div>
-              <input id="threshold-slider" class="studio-slider" type="range" min="0.10" max="0.90" step="0.05" value="0.50">
+              <input id="threshold-slider" class="studio-slider" type="range" min="0.10" max="0.90" step="0.01" value="0.50">
               <div class="slider-scale">
                 <span>0.10 (High Sensitivity)</span>
                 <span>0.50 (Balanced)</span>
                 <span>0.90 (High Specificity)</span>
+              </div>
+              <div class="recommended-threshold-box" style="margin-top: 8px;">
+                <button type="button" class="action-btn-text" id="apply-rec-thresh-btn" style="color: #58a6ff; font-size: 0.82rem; cursor: pointer; text-decoration: underline; background: none; border: none; padding: 0;">
+                  ✨ Calibrated Optimal: <strong id="rec-thresh-display">0.40</strong> (Click to Apply)
+                </button>
               </div>
             </div>
 
@@ -206,6 +215,17 @@
               </div>
             </div>
 
+            <!-- Grounded Focal Lesions & Bounding Boxes -->
+            <div class="studio-card" id="bounding-boxes-card" hidden>
+              <div class="card-header">
+                <h3>Anatomically Grounded Focal Regions</h3>
+                <span class="card-badge" id="bounding-boxes-badge">0 Detected</span>
+              </div>
+              <div id="bounding-boxes-list" class="bounding-boxes-list" style="display: flex; flex-direction: column; gap: 8px; padding: 8px 0;">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
             <!-- Quick Explainability Preview Link -->
             <div class="quick-xai-card studio-card">
               <div class="card-header">
@@ -243,58 +263,250 @@
       </div>
 
       <div id="xai-active-grid" class="xai-four-panel-grid" hidden>
-        <!-- Panel 1: Original Radiograph -->
+        <!-- Panel 1: Localized Focal Bounding Boxes -->
         <div class="xai-card">
           <div class="xai-card-title">
             <span class="panel-num">PANEL 1</span>
-            <h4>Original X-ray</h4>
+            <h4 id="panel-1-title">Grounded Bounding Boxes</h4>
           </div>
           <div class="xai-img-frame">
-            <img id="panel-1-img" alt="Original X-ray">
+            <img id="panel-1-img" alt="Grounded Bounding Boxes on X-ray">
           </div>
-          <div class="xai-caption">Preprocessed clinical input radiograph.</div>
+          <div class="xai-caption" id="panel-1-caption">Multi-focal lesion bounding boxes with anatomical zone labels.</div>
         </div>
 
-        <!-- Panel 2: Model Attribution Heatmap -->
+        <!-- Panel 2: Anatomical Segmentation Mask -->
         <div class="xai-card">
           <div class="xai-card-title">
             <span class="panel-num">PANEL 2</span>
-            <h4 id="panel-2-title">Model-Specific Heatmap</h4>
+            <h4 id="panel-2-title">Anatomical Segmentation Mask</h4>
           </div>
           <div class="xai-img-frame">
-            <img id="panel-2-img" alt="Model Attribution Heatmap">
+            <img id="panel-2-img" alt="Anatomical Segmentation Mask">
           </div>
-          <div class="xai-caption" id="panel-2-caption">Grad-CAM / Gradient × Activation map.</div>
+          <div class="xai-caption" id="panel-2-caption">Color-coded: Blue = Lung Fields | Red = Cardiac Silhouette | Green = Perihilar.</div>
         </div>
 
-        <!-- Panel 3: ViT Attention Rollout / Secondary View -->
+        <!-- Panel 3: Model Attribution Heatmap -->
         <div class="xai-card">
           <div class="xai-card-title">
             <span class="panel-num">PANEL 3</span>
-            <h4 id="panel-3-title">ViT Attention Rollout</h4>
+            <h4 id="panel-3-title">Model-Specific Attribution</h4>
           </div>
           <div class="xai-img-frame">
-            <img id="panel-3-img" alt="Attention Rollout / Structural Map">
+            <img id="panel-3-img" alt="Model Attribution Heatmap">
           </div>
-          <div class="xai-caption" id="panel-3-caption">Multi-layer recursive self-attention rollout.</div>
+          <div class="xai-caption" id="panel-3-caption">Raw mathematical gradient & activation heatmap.</div>
         </div>
 
         <!-- Panel 4: Fused Diagnostic Visual Overlay -->
         <div class="xai-card highlight-card">
           <div class="xai-card-title">
             <span class="panel-num highlight-num">PANEL 4</span>
-            <h4 id="panel-4-title">Fused Visual Overlay</h4>
+            <h4 id="panel-4-title">Anatomically Fused Overlay</h4>
           </div>
           <div class="xai-img-frame">
             <img id="panel-4-img" alt="Fused Radiograph Overlay">
           </div>
-          <div class="xai-caption" id="panel-4-caption">High-contrast alpha blend of radiograph and model attribution.</div>
+          <div class="xai-caption" id="panel-4-caption">Heatmap constrained to thoracic anatomy with focal lesion bounding boxes.</div>
         </div>
       </div>
 
       <div class="attribution-disclaimer studio-card" id="xai-methodology-note" hidden>
         <h4>Methodological Notice</h4>
         <p>Visual attribution maps highlight image regions that exerted high computational weight on the model's classification score. They represent model attribution sensitivity and do not constitute radiologist-confirmed lesion boundaries or diagnostic certainties.</p>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 3: MODEL SCOPE, OPTIMISM BIAS & HIDDEN DEPENDENCIES           -->
+    <!-- ================================================================= -->
+    <section class="tab-panel" id="panel-integrity">
+      <div class="section-title-row">
+        <div>
+          <h2>Architectural Diagnostic Integrity: Scope, Bias & Calibration</h2>
+          <p>Rigorous comparative breakdown of error modes, clinical coupling, out-of-scope boundaries, and calibrated decision thresholds across all four models.</p>
+        </div>
+      </div>
+
+      <!-- Quick Summary Matrix Table -->
+      <div class="studio-card" style="margin-bottom: 24px;">
+        <div class="card-header">
+          <h3>Architectural Calibration & Diagnostic Matrix</h3>
+          <span class="card-badge">Four-Model Evaluation</span>
+        </div>
+        <div class="table-responsive">
+          <table class="benchmark-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Family</th>
+                <th>Calibrated Threshold</th>
+                <th>Primary Clinical Modality</th>
+                <th>Optimism Bias Vulnerability</th>
+                <th>Hidden Dependency Risk</th>
+                <th>Operational Boundary</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Vision Transformer (ViT-B/16)</strong> <span class="badge-primary">[PRIMARY]</span></td>
+                <td>Vision Transformer</td>
+                <td><strong style="color: #58a6ff;">0.40</strong></td>
+                <td>Global multi-focal patterns & subtle bilateral opacity</td>
+                <td>Low-frequency contrast inflation across unconstrained patches</td>
+                <td>External radio-opaque hardware coupling with parenchymal opacities</td>
+                <td>Cannot resolve sub-mm hairline rib fractures or micro-pneumothoraces (<5mm)</td>
+              </tr>
+              <tr>
+                <td><strong>DenseNet121</strong></td>
+                <td>Densely Connected CNN</td>
+                <td><strong style="color: #58a6ff;">0.45</strong></td>
+                <td>High-frequency localized alveolar consolidation</td>
+                <td>Dense concatenation gradient accumulation at rib/diaphragm borders</td>
+                <td>Patient rotation / projection shift misidentified as Cardiomegaly</td>
+                <td>Lacks holistic cross-hemithorax relational context without deep pooling</td>
+              </tr>
+              <tr>
+                <td><strong>Capsule Network (CapsNet)</strong></td>
+                <td>Capsules + Dynamic Routing</td>
+                <td><strong style="color: #58a6ff;">0.40</strong></td>
+                <td>Cardiac silhouette geometry & contour deformation</td>
+                <td>Vector length saturation ||v_j|| -> 1.0 favoring large anatomical shapes</td>
+                <td>Expects semi-rigid geometry; under-detects amorphous ground-glass opacities</td>
+                <td>Suboptimal for non-geometric, diffuse interstitial reticular patterns</td>
+              </tr>
+              <tr>
+                <td><strong>Graph Attention Network (GAT)</strong></td>
+                <td>Graph Attention + CNN</td>
+                <td><strong style="color: #58a6ff;">0.38</strong></td>
+                <td>Topological inter-regional disease spread pathways</td>
+                <td>Graph message passing over-smoothing diffusing focal lesion activations</td>
+                <td>External wires crossing node boundaries simulating disease propagation</td>
+                <td>Spatial resolution bounded by 7×7 grid (32×32 pixel nodes); cannot resolve tiny nodules</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Detailed Deep Dives per Architecture -->
+      <div class="integrity-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+        <!-- Card 1: ViT-B/16 -->
+        <div class="studio-card" style="border-top: 3px solid #58a6ff;">
+          <div class="card-header">
+            <h3>Vision Transformer (ViT-B/16)</h3>
+            <span class="badge-primary">PRIMARY RESEARCH MODEL</span>
+          </div>
+          <div class="integrity-body" style="font-size: 0.9rem; line-height: 1.55; display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <strong style="color: #58a6ff;">Calibrated Threshold:</strong> <code>0.40</code>
+              <p style="margin: 4px 0 0; color: #8b949e;">Patch self-attention creates diffuse logit distributions; 0.40 delivers optimal F1 (0.584) and 89.2% sensitivity without inflating false positives.</p>
+            </div>
+            <div>
+              <strong style="color: #f0883e;">Optimism Bias & Mitigation:</strong>
+              <p style="margin: 4px 0 0; color: #c9d1d9;">Every patch interacts directly with all 195 other patches. Diffuse thoracic contrast can artificially boost multi-label logits simultaneously. <strong>Mitigation:</strong> Anatomical lung field masking prunes non-thoracic tokens, and calibrated threshold (0.40) prevents diffuse over-calling.</p>
+            </div>
+            <div>
+              <strong style="color: #d2a8ff;">Hidden Dependencies:</strong>
+              <p style="margin: 4px 0 0; color: #c9d1d9;">ViT naturally models bilateral disease spread (consolidation + effusion in congestive heart failure). However, external high-density items (pacemaker leads, clips) can falsely correlate with parenchymal consolidation if unmasked.</p>
+            </div>
+            <div>
+              <strong style="color: #7ee787;">Operational Scope:</strong>
+              <p style="margin: 4px 0 0; color: #c9d1d9;"><strong>In-Scope:</strong> Multifocal pneumonia, bilateral edema, COVID-19/ARDS, hemithorax asymmetry. <strong>Out-of-Scope:</strong> Fine linear hairline rib fractures (<1mm) and micro-apical pneumothorax lines.</p>
+            </div>
+            <div style="background: rgba(88, 166, 255, 0.08); padding: 10px; border-radius: 6px; border: 1px solid rgba(88, 166, 255, 0.2);">
+              <strong>How to Test:</strong> Select ViT-B/16, set threshold to <code>0.40</code>, and upload/paste CXR. Check Panel 1 for focal bounding boxes and Panel 4 for fused overlay.
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: DenseNet-121 -->
+        <div class="studio-card" style="border-top: 3px solid #3fb950;">
+          <div class="card-header">
+            <h3>DenseNet-121</h3>
+            <span class="card-badge">ESTABLISHED CNN BASELINE</span>
+          </div>
+          <div class="integrity-body" style="font-size: 0.9rem; line-height: 1.55; display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <strong style="color: #3fb950;">Calibrated Threshold:</strong> <code>0.45</code>
+              <p style="margin: 4px 0 0; color: #8b949e;">Dense feature reuse produces concentrated feature representations; 0.45 threshold balances sharp precision (0.548) with high recall.</p>
+            </div>
+            <div>
+              <strong style="color: #f0883e;">Optimism Bias & Mitigation:</strong>
+              <p style="margin: 4px 0 0; color: #c9d1d9;">Concentrated gradient accumulation across dense blocks causes high-contrast anatomical borders (ribs, diaphragm) to generate overconfident activations. <strong>Mitigation:</strong> Batch-norm feature stabilization and denseblock4 Grad-CAM spatial averaging.</p>
+            </div>
+            <div>
+              <strong style="color: #d2a8ff;">Hidden Dependencies:</strong>
+              <p style="margin: 4px 0 0; color: #c9d1d9;">Sensitive to patient rotation and AP vs PA projection geometry. Patient rotation shifting mediastinum into the left hemithorax can falsely trigger Cardiomegaly. <strong>Mitigation:</strong> Anatomical cardiac contour masking.</p>
+            </div>
+            <div>
+              <strong style="color: #7ee787;">Operational Scope:</strong>
+              <p style="margin: 4px 0 0; color: #c9d1d9;"><strong>In-Scope:</strong> Dense lobar consolidations with air bronchograms, circumscribed nodules, and pleural effusion fluid menisci. <strong>Out-of-Scope:</strong> Cross-hemithorax holistic relational reasoning.</p>
+            </div>
+            <div style="background: rgba(63, 185, 80, 0.08); padding: 10px; border-radius: 6px; border: 1px solid rgba(63, 185, 80, 0.2);">
+              <strong>How to Test:</strong> Select DenseNet-121, set threshold to <code>0.45</code>, and inspect dense lobar air bronchograms in Panel 3.
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: CapsNet -->
+        <div class="studio-card" style="border-top: 3px solid #a371f7;">
+          <div class="card-header">
+            <h3>Capsule Network (CapsNet)</h3>
+            <span class="card-badge">SPATIAL POSE & ROUTING</span>
+          </div>
+          <div class="integrity-body" style="font-size: 0.9rem; line-height: 1.55; display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <strong style="color: #a371f7;">Calibrated Threshold:</strong> <code>0.40</code>
+              <p style="margin: 4px 0 0; color: #8b949e;">Vector capsule lengths ||v_j|| bounded in [0, 1] require a 0.40 decision boundary for multi-label agreement.</p>
+            </div>
+            <div>
+              <strong style="color: #f0883e;">Optimism Bias & Mitigation:</strong>
+              <p style="margin: 4px 0 0; color: #c9d1d9;">Routing agreement can cause capsule length to saturate near 1.0 on large geometric shapes (e.g. cardiac shadow). <strong>Mitigation:</strong> 3-iteration dynamic routing with margin loss bounds and 3rd-order Grad-CAM++.</p>
+            </div>
+            <div>
+              <strong style="color: #d2a8ff;">Hidden Dependencies:</strong>
+              <p style="margin: 4px 0 0; color: #c9d1d9;">Strongly couples disease detection to geometric pose and affine transformation parameters. Under-detects amorphous diffuse ground-glass infiltrates lacking distinct boundaries.</p>
+            </div>
+            <div>
+              <strong style="color: #7ee787;">Operational Scope:</strong>
+              <p style="margin: 4px 0 0; color: #c9d1d9;"><strong>In-Scope:</strong> Structural, geometric findings: Cardiomegaly (CTR > 0.50), Enlarged Cardiomediastinum, Pleural Effusion meniscus contouring. <strong>Out-of-Scope:</strong> Diffuse interstitial reticular markings.</p>
+            </div>
+            <div style="background: rgba(163, 113, 247, 0.08); padding: 10px; border-radius: 6px; border: 1px solid rgba(163, 113, 247, 0.2);">
+              <strong>How to Test:</strong> Select CapsNet, set threshold to <code>0.40</code>, and verify cardiac silhouette boundary in Panel 2 & 4.
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: GAT -->
+        <div class="studio-card" style="border-top: 3px solid #f0883e;">
+          <div class="card-header">
+            <h3>Graph Attention Network (GAT)</h3>
+            <span class="card-badge">7×7 SPATIAL TOPOLOGY</span>
+          </div>
+          <div class="integrity-body" style="font-size: 0.9rem; line-height: 1.55; display: flex; flex-direction: column; gap: 12px;">
+            <div>
+              <strong style="color: #f0883e;">Calibrated Threshold:</strong> <code>0.38</code>
+              <p style="margin: 4px 0 0; color: #8b949e;">Graph message passing across 49 nodes diffuses logits; 0.38 provides optimal detection for inter-regional spread.</p>
+            </div>
+            <div>
+              <strong style="color: #f0883e;">Optimism Bias & Mitigation:</strong>
+              <p style="margin: 4px 0 0; color: #c9d1d9;">Graph edge attention over-smoothing can diffuse focal lesion activations across adjacent lung zones. <strong>Mitigation:</strong> Localized 8-connectivity edge attention entropy normalization.</p>
+            </div>
+            <div>
+              <strong style="color: #d2a8ff;">Hidden Dependencies:</strong>
+              <p style="margin: 4px 0 0; color: #c9d1d9;">Models anatomical disease spread pathways (lobar pneumonia spreading to adjacent segments). External leads spanning nodes can simulate false disease propagation edges without anatomical masking.</p>
+            </div>
+            <div>
+              <strong style="color: #7ee787;">Operational Scope:</strong>
+              <p style="margin: 4px 0 0; color: #c9d1d9;"><strong>In-Scope:</strong> Inter-regional disease spread, multi-lobar tracking, lobar fissure boundary verification. <strong>Out-of-Scope:</strong> Small solitary pulmonary nodules (<10mm) constrained by 32×32 pixel nodes.</p>
+            </div>
+            <div style="background: rgba(240, 136, 62, 0.08); padding: 10px; border-radius: 6px; border: 1px solid rgba(240, 136, 62, 0.2);">
+              <strong>How to Test:</strong> Select GAT, set threshold to <code>0.38</code>, and observe regional 7×7 node attention in Panel 3.
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 

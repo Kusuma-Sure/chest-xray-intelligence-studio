@@ -103,7 +103,11 @@ class MedicalPredictor:
         prep_img = image.convert(mode)
         input_tensor = transform(prep_img).unsqueeze(0).to(self.device)
 
-        # Step 4: Multi-label Sigmoid Prediction
+        # Step 4: Calibrate Threshold per Model if not explicitly overridden
+        if threshold is None:
+            threshold = MODEL_INFO[model_name].get("recommended_threshold", DEFAULT_THRESHOLD)
+
+        # Multi-label Sigmoid Prediction
         try:
             if explain:
                 # Keep autograd available for Grad-CAM / Gradient x Activation
@@ -143,8 +147,9 @@ class MedicalPredictor:
         focus_finding = FINDINGS[focus_idx]
         focus_prob = float(probabilities[focus_idx])
 
-        # Step 6: Generate Explainability (4-Panel Visual Grid)
+        # Step 6: Generate Anatomical Segmentation & Explainability (4-Panel Visual Grid)
         xai_data = {"available": False, "reason": "Explainability was not requested."}
+        bounding_boxes = []
         if explain:
             try:
                 raw_xai = generate_visual_explanation(
@@ -163,12 +168,14 @@ class MedicalPredictor:
                         finding_name=focus_finding,
                         probability=focus_prob,
                     )
+                    bounding_boxes = four_panels.get("bounding_boxes", [])
                     xai_data = {
                         "available": True,
                         "method": raw_xai["method"],
                         "target_finding": focus_finding,
                         "target_class_idx": focus_idx,
                         "target_probability": focus_prob,
+                        "bounding_boxes": bounding_boxes,
                         "panels": four_panels,
                     }
                 else:
@@ -185,20 +192,34 @@ class MedicalPredictor:
             threshold=threshold,
         )
 
+        # Per-model architectural diagnostic analysis
+        arch_meta = MODEL_INFO.get(model_name, {})
+        arch_analysis = {
+            "model_id": model_name,
+            "model_name": arch_meta.get("name", model_name),
+            "recommended_threshold": arch_meta.get("recommended_threshold", 0.50),
+            "optimism_bias": arch_meta.get("optimism_bias", {}),
+            "hidden_dependencies": arch_meta.get("hidden_dependencies", {}),
+            "unclear_scope": arch_meta.get("unclear_scope", {}),
+        }
+
         return {
             "success": True,
             "is_ood": False,
             "model_id": model_name,
             "model_name": MODEL_INFO[model_name]["name"],
             "threshold": float(threshold),
+            "recommended_threshold": float(arch_meta.get("recommended_threshold", 0.50)),
             "processing_time_ms": round(elapsed_ms, 2),
             "input_resolution": f"{image.width} × {image.height}",
             "findings": findings_rows,
             "positive_findings": positive_findings,
             "highest_finding": focus_finding,
             "highest_probability": focus_prob,
+            "bounding_boxes": bounding_boxes,
             "explanation": xai_data,
             "graph_rag": graph_rag_data,
+            "architecture_analysis": arch_analysis,
             "disclaimer": (
                 "Academic Research Prototype: Predictions and attribution maps are probabilistic "
                 "deep learning outputs for educational and scientific inquiry. Not approved as a medical device."

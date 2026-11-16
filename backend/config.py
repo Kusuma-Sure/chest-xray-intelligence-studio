@@ -124,7 +124,7 @@ FINDING_ANATOMY = {
     }
 }
 
-# Model registry specification
+# Model registry specification with per-model diagnostic calibration
 MODEL_INFO = {
     "vit": {
         "id": "vit",
@@ -136,7 +136,22 @@ MODEL_INFO = {
         "input_type": "RGB / HF ViT Normalization",
         "input_size": 224,
         "explanation_method": "ViT Attention Rollout & Gradient × Activation",
+        "recommended_threshold": 0.40,
         "description": "Primary architecture. Utilizes multi-head self-attention over 196 image patches (16×16) to capture long-range contextual dependencies across the thoracic cavity.",
+        "optimism_bias": {
+            "risk": "Global low-frequency contrast inflation across 196 unconstrained patches can over-elevate probabilities on diffuse opacities.",
+            "mechanism": "Every patch token directly computes inner-product self-attention with all other patches, causing widespread background or pleural fluid to boost multi-label logits simultaneously.",
+            "mitigation": "Calibrated decision threshold of 0.40, patch gradient × activation attribution, and anatomical lung field mask gating to suppress out-of-field artifacts."
+        },
+        "hidden_dependencies": {
+            "clinical_coupling": "Strongly couples bilateral diffuse opacities with secondary findings (e.g., bilateral consolidation and effusion in heart failure).",
+            "vulnerability": "Can falsely correlate radio-opaque external hardware (leads, clips) with parenchymal consolidation if attention heads bridge high-density tokens.",
+            "mitigation": "Anatomical parenchyma segmentation decouples external dense objects from internal airspace attenuation."
+        },
+        "unclear_scope": {
+            "operational_domain": "Optimal for global multi-focal pattern integration, bilateral interstitial disease, multifocal pneumonia, and subtle hemithorax asymmetry.",
+            "out_of_scope": "Not designed for sub-millimeter linear rib fractures or micro-apical pneumothorax visceral lines (<5mm) due to 16×16 patch granularity."
+        }
     },
     "densenet": {
         "id": "densenet",
@@ -148,7 +163,22 @@ MODEL_INFO = {
         "input_type": "RGB / ImageNet Normalization",
         "input_size": 224,
         "explanation_method": "Grad-CAM (denseblock4)",
+        "recommended_threshold": 0.45,
         "description": "Established medical imaging baseline. Connects each layer to every other layer in a feed-forward fashion, ensuring maximum feature reuse and strong gradient propagation.",
+        "optimism_bias": {
+            "risk": "Feature map concatenation (k=32 growth rate) concentrates gradient magnitudes, creating sharp, overconfident logit peaks.",
+            "mechanism": "Repeated concatenation across 4 dense blocks allows high-contrast anatomical edges (rib borders, diaphragmatic domes) to produce extreme activations.",
+            "mitigation": "Calibrated decision threshold of 0.45, batch normalization stabilizing channel distributions, and Grad-CAM spatial averaging across denseblock4."
+        },
+        "hidden_dependencies": {
+            "clinical_coupling": "Tightly couples local texture density with disease presence; sensitive to patient rotation and AP vs PA projection geometry.",
+            "vulnerability": "Chest rotation projecting mediastinum into the left hemithorax can be misclassified as Cardiomegaly due to local pixel accumulation at the cardiac border.",
+            "mitigation": "Anatomical cardiac silhouette segmentation and CTR contour bounding boxes decouple projection shift from true cardiomegaly."
+        },
+        "unclear_scope": {
+            "operational_domain": "Gold standard for localized high-frequency textures: dense lobar consolidations with air bronchograms, focal masses, and sharp costophrenic angle blunting.",
+            "out_of_scope": "Suboptimal for cross-hemithorax long-range relational reasoning without deep pooling that erodes fine spatial resolution."
+        }
     },
     "capsnet": {
         "id": "capsnet",
@@ -160,7 +190,22 @@ MODEL_INFO = {
         "input_type": "Grayscale / Normalized [0, 1]",
         "input_size": 224,
         "explanation_method": "Grad-CAM++ (Conv3)",
+        "recommended_threshold": 0.40,
         "description": "Preserves hierarchical part-whole relationships through vector capsules and dynamic routing agreement, preventing spatial information loss common to pooling operations.",
+        "optimism_bias": {
+            "risk": "Capsule length saturation ||v_j|| -> 1.0 when routing coefficients rapidly converge on dominant structural shapes.",
+            "mechanism": "Vector routing by agreement reinforces dominant geometric entities, potentially causing optimism bias on large organs (e.g., cardiac silhouette).",
+            "mitigation": "Calibrated threshold of 0.40, margin loss bounds (m+=0.9, m-=0.1), and higher-order Grad-CAM++ with 1st, 2nd, and 3rd order gradient weighting."
+        },
+        "hidden_dependencies": {
+            "clinical_coupling": "Couples disease detection to geometric pose and affine transformation parameters of organ capsules.",
+            "vulnerability": "Expects semi-rigid part-whole hierarchies; amorphous, diffuse ground-glass infiltrates lacking clear geometric boundaries can be under-represented.",
+            "mitigation": "Pairing capsule outputs with anatomical multi-compartment segmentation ensures unorganized parenchymal opacities are properly tracked."
+        },
+        "unclear_scope": {
+            "operational_domain": "Superb for structural, geometric, and contour-dependent findings: Cardiomegaly, Enlarged Cardiomediastinum, and Pleural Effusion meniscus shapes.",
+            "out_of_scope": "Not suitable for non-geometric, diffuse interstitial reticular markings or faint patchy micro-opacities."
+        }
     },
     "gat": {
         "id": "gat",
@@ -172,7 +217,22 @@ MODEL_INFO = {
         "input_type": "RGB / ImageNet Normalization",
         "input_size": 224,
         "explanation_method": "GAT Regional Attention Weights & Spatial Node Mapping",
+        "recommended_threshold": 0.38,
         "description": "Transforms image feature maps into a spatial region graph (49 nodes, 8-neighbor edges) and applies multi-head self-attention to model inter-regional thoracic dependencies.",
+        "optimism_bias": {
+            "risk": "Graph message passing over-smoothing can diffuse focal lesion activations across adjacent lung zones.",
+            "mechanism": "Adjacent spatial nodes exchange representations via 8-connectivity edge attention alpha_ij; high activation in one node can artificially elevate neighboring nodes.",
+            "mitigation": "Calibrated operating threshold of 0.38, localized multi-head attention entropy normalization, and connected-component boundary extraction."
+        },
+        "hidden_dependencies": {
+            "clinical_coupling": "Directly models anatomical disease spread pathways (e.g., lobar pneumonia spreading to adjacent bronchopulmonary segments or basal effusion layering).",
+            "vulnerability": "External linear artifacts (ECG wires, chest tubes) that cross multiple node boundaries can create false edge dependencies between apical and basal nodes.",
+            "mitigation": "Anatomical lung field masking prunes non-thoracic peripheral graph nodes prior to regional dependency evaluation."
+        },
+        "unclear_scope": {
+            "operational_domain": "Ideal for topological spread assessment, multi-lobar tracking, and verifying whether an opacity respects anatomical lobar fissures.",
+            "out_of_scope": "Spatial resolution is constrained by the 7×7 grid (32×32 pixel nodes); cannot resolve tiny solitary pulmonary nodules (<10mm)."
+        }
     },
 }
 

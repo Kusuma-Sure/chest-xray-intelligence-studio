@@ -279,10 +279,30 @@ function onModelChanged() {
     noticeBox.hidden = false;
   }
 
+  // Update recommended threshold chip
+  const recThresh = model.recommended_threshold || 0.40;
+  const recDisplay = $('rec-thresh-display');
+  if (recDisplay) {
+    recDisplay.textContent = recThresh.toFixed(2);
+  }
+
   updateInferenceButtonState();
 }
 
 $('model-select').addEventListener('change', onModelChanged);
+
+// Apply Recommended Threshold button
+$('apply-rec-thresh-btn')?.addEventListener('click', () => {
+  const modelId = $('model-select').value;
+  const model = registeredModels.find((m) => m.id === modelId);
+  const recThresh = model?.recommended_threshold || 0.40;
+  $('threshold-slider').value = recThresh.toFixed(2);
+  $('threshold-display').textContent = recThresh.toFixed(2);
+  if (activePrediction && activePrediction.findings) {
+    reRenderFindingsWithThreshold(recThresh);
+  }
+  showToast(`Applied calibrated threshold ${recThresh.toFixed(2)} for ${model?.name || 'model'}`);
+});
 
 function updateInferenceButtonState() {
   const modelId = $('model-select').value;
@@ -398,6 +418,8 @@ function resetPredictionView() {
   $('xai-empty-notice').hidden = false;
   $('xai-active-grid').hidden = true;
   $('xai-methodology-note').hidden = true;
+  const bbCard = $('bounding-boxes-card');
+  if (bbCard) bbCard.hidden = true;
 }
 
 function renderPredictionResults(data) {
@@ -411,6 +433,29 @@ function renderPredictionResults(data) {
 
   const threshold = parseFloat($('threshold-slider').value);
   reRenderFindingsWithThreshold(threshold);
+
+  // Populate Anatomically Grounded Focal Bounding Boxes
+  const bbCard = $('bounding-boxes-card');
+  const bbList = $('bounding-boxes-list');
+  const bbBadge = $('bounding-boxes-badge');
+  if (data.bounding_boxes && data.bounding_boxes.length > 0) {
+    bbCard.hidden = false;
+    bbBadge.textContent = `${data.bounding_boxes.length} Focal Region${data.bounding_boxes.length > 1 ? 's' : ''}`;
+    bbList.innerHTML = data.bounding_boxes.map((b) => `
+      <div class="bounding-box-item" style="background: rgba(255,255,255,0.04); border-left: 3px solid #ff4444; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <strong style="color: #e6edf3;">📍 ${escapeHtml(b.zone)}</strong>
+          <div style="font-size: 0.8rem; color: #8b949e; margin-top: 2px;">${escapeHtml(b.label)}</div>
+        </div>
+        <div style="text-align: right;">
+          <span class="badge-primary" style="font-size: 0.75rem; background: rgba(88,166,255,0.15); border: 1px solid rgba(88,166,255,0.4); padding: 2px 6px; border-radius: 4px;">Peak: ${b.peak_norm}</span>
+          <div style="font-size: 0.75rem; color: #8b949e; margin-top: 3px;">Area: ${b.area_pct}%</div>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    bbCard.hidden = true;
+  }
 
   // Populate 4-Panel XAI
   if (data.explanation && data.explanation.available && data.explanation.panels) {
@@ -470,15 +515,27 @@ function renderFourPanelXAI(panels, method) {
   $('xai-active-grid').hidden = false;
   $('xai-methodology-note').hidden = false;
 
-  $('panel-1-img').src = panels.panel_1_original;
-  $('panel-2-img').src = panels.panel_2_heatmap;
-  $('panel-2-title').textContent = method || 'Model-Specific Heatmap';
+  // Panel 1: Grounded Bounding Boxes on Original Radiograph
+  $('panel-1-img').src = panels.panel_1_annotated || panels.panel_1_original;
+  const boxCount = panels.bounding_boxes ? panels.bounding_boxes.length : 0;
+  $('panel-1-caption').textContent = boxCount > 0 
+    ? `${boxCount} focal lesion bounding box(es) localized to anatomical zones.`
+    : 'Clinical radiograph preprocessed with aspect-preserving letterboxing.';
 
-  $('panel-3-img').src = panels.panel_3_rollout;
-  $('panel-3-title').textContent = panels.panel_3_title || 'ViT Attention Rollout';
+  // Panel 2: Anatomical Segmentation Mask (Color-coded)
+  $('panel-2-img').src = panels.panel_2_anatomy || panels.panel_2_heatmap;
+  $('panel-2-title').textContent = 'Anatomical Segmentation Mask';
+  $('panel-2-caption').textContent = 'Color-coded: Blue = Lung Fields | Red = Cardiac Silhouette | Green = Perihilar.';
 
+  // Panel 3: Model-Specific Attribution Heatmap
+  $('panel-3-img').src = panels.panel_2_heatmap || panels.panel_3_rollout;
+  $('panel-3-title').textContent = method || 'Model-Specific Attribution';
+  $('panel-3-caption').textContent = 'Raw mathematical gradient & activation heatmap.';
+
+  // Panel 4: Fused Diagnostic Visual Overlay
   $('panel-4-img').src = panels.panel_4_fused;
   $('panel-4-title').textContent = `Fused Overlay: ${panels.finding} (${(panels.probability * 100).toFixed(1)}%)`;
+  $('panel-4-caption').textContent = 'Heatmap constrained to thoracic anatomy with focal lesion bounding boxes.';
 }
 
 $('xai-focus-select')?.addEventListener('change', async (e) => {
