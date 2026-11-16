@@ -1,44 +1,29 @@
-# Running Chest X-ray Intelligence Studio Backend on Google Colab
+# Google Colab Execution Suites: Chest X-ray Intelligence
 
-This directory provides the complete, self-contained Google Colab notebook to run the **FastAPI Backend Server on a cloud GPU (NVIDIA T4 / V100 / A100)** with an instant, secure public HTTPS URL via Cloudflare Tunnel.
-
----
-
-## Quickstart: 1-Click Open in Google Colab
-
-Click the badge below to open the notebook directly in Google Colab:
-
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/VEDANTH0517/chest-xray-intelligence-studio/blob/main/colab/Run_Backend_Google_Colab.ipynb)
+This directory provides Google Colab notebooks and standalone Python model scripts to demonstrate and evaluate **Chest X-ray Intelligence**:
 
 ---
 
-## Instructions
+## 1. Notebook Options for Google Colab
 
-### Step 1: Open in Colab
-1. Go to [Google Colab](https://colab.research.google.com).
-2. Choose **File -> Open Notebook**.
-3. Select the **GitHub** tab, enter `https://github.com/VEDANTH0517/chest-xray-intelligence-studio`, and select `colab/Run_Backend_Google_Colab.ipynb`.
-   *(Or click the 'Upload' tab and upload `colab/Run_Backend_Google_Colab.ipynb` from your computer).*
+### Option A: Full Backend Models & Architecture Notebook (Recommended for Faculty Review)
+- **Notebook File**: [`Chest_Xray_Intelligence_Full_Backend_Models.ipynb`](./Chest_Xray_Intelligence_Full_Backend_Models.ipynb)
+- **Badge Link**: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/VEDANTH0517/chest-xray-intelligence-studio/blob/main/colab/Chest_Xray_Intelligence_Full_Backend_Models.ipynb)
+- **Description**: Contains the **complete, self-contained Python source code** of all 4 deep learning models (ViT-B/16, DenseNet121, CapsNet with dynamic routing, and GAT with 49-node spatial region graphs), medical image preprocessing (PSNR ≥ 40 dB), OOD guardrail, open-set discovery with Helmholtz free energy, anatomical segmentation with labeled bounding boxes, and 4-panel visual XAI heatmaps. Runs top-to-bottom directly in Colab without needing local files.
 
-### Step 2: Enable GPU
-In Colab:
-- Go to **Runtime -> Change runtime type**.
-- Select **T4 GPU** (or any available GPU).
-- Click **Save**.
+### Option B: Live GPU Backend Server & Cloudflare Public HTTPS Tunnel
+- **Notebook File**: [`Run_Backend_Google_Colab.ipynb`](./Run_Backend_Google_Colab.ipynb)
+- **Badge Link**: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/VEDANTH0517/chest-xray-intelligence-studio/blob/main/colab/Run_Backend_Google_Colab.ipynb)
+- **Description**: Runs the live FastAPI server on an NVIDIA GPU (T4 / V100 / A100) and exposes the full interactive UI via an instant, secure public HTTPS URL.
 
-### Step 3: Run the Cells in Order
-1. **Cell 1**: Hardware Check (verifies CUDA and GPU VRAM).
-2. **Cell 2**: Clones the latest code from GitHub.
-3. **Cell 3**: Installs all required dependencies and the Cloudflare Tunnel client.
-4. **Cell 4**: Verifies model checkpoints.
-5. **Cell 5**: Launches the FastAPI server on the GPU and outputs your **live public HTTPS URL**:
-   ```text
-   ======================================================================
-   CHEST X-RAY INTELLIGENCE STUDIO IS LIVE ON GPU
-   ======================================================================
-   * Studio Dashboard URL : https://xxxxxxxx.trycloudflare.com
-   * Interactive API Docs : https://xxxxxxxx.trycloudflare.com/docs
-   * Health Status API    : https://xxxxxxxx.trycloudflare.com/api/health
-   ======================================================================
-   ```
-6. **Click the Studio Dashboard URL** to access the application from any computer, phone, or tablet!
+---
+
+## 2. Separated Standalone Model Python Scripts (`standalone_models/`)
+
+For direct code inspection, modular imports, or running individual architectures separately:
+- [`vit_b16.py`](./standalone_models/vit_b16.py): Vision Transformer (ViT-B/16) PyTorch module.
+- [`densenet121.py`](./standalone_models/densenet121.py): DenseNet121 convolutional feature reuse module.
+- [`capsnet.py`](./standalone_models/capsnet.py): Capsule Network with 784 primary capsules, 16 disease capsules, and dynamic routing.
+- [`gat.py`](./standalone_models/gat.py): Graph Attention Network (GAT) with 49-node spatial region graph and 8-neighbor attention.
+- [`model_factory.py`](./standalone_models/model_factory.py): Unified factory function `build_model(model_name)` to instantiate any architecture.
+
