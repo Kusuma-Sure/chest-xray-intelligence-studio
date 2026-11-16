@@ -162,7 +162,7 @@ def compute_vit_attention_rollout(
             if isinstance(res, tuple) and len(res) == 2:
                 _, attentions = res
 
-    if attentions is None:
+    if not attentions or len(attentions) == 0:
         # Fallback synthetic spatial rollout from feature variance
         return np.ones((14, 14), dtype=np.float32) * 0.5
 

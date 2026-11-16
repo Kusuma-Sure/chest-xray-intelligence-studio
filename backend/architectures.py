@@ -235,12 +235,20 @@ class CheXpertViT(nn.Module):
                     num_labels=num_classes,
                     problem_type="multi_label_classification",
                     ignore_mismatched_sizes=True,
+                    attn_implementation="eager",
                 )
             else:
                 config = ViTConfig.from_pretrained(hf_model_id)
                 config.num_labels = num_classes
                 config.problem_type = "multi_label_classification"
+                config._attn_implementation = "eager"
                 self.vit_model = ViTForImageClassification(config)
+            
+            # Ensure eager attention across encoder layers for attention rollout
+            if hasattr(self.vit_model, "vit") and hasattr(self.vit_model.vit, "encoder"):
+                for layer in self.vit_model.vit.encoder.layer:
+                    if hasattr(layer, "attention") and hasattr(layer.attention, "attention"):
+                        layer.attention.attention.config._attn_implementation = "eager"
             self._backend_type = "huggingface"
         except Exception:
             # Fallback to TorchVision ViT if HF is temporarily unavailable in environment
