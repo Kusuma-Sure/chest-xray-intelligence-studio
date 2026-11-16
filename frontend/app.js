@@ -210,7 +210,7 @@ window.addEventListener('paste', (e) => {
   if (files.length > 0) {
     e.preventDefault();
     handleFilesAdded(files);
-    showToast(`📋 Pasted ${files.length} radiograph(s) from clipboard! Ready to analyze.`);
+    showToast(`Pasted ${files.length} radiograph(s) from clipboard! Ready to analyze.`);
     switchTab('analysis');
   }
 });
@@ -239,7 +239,7 @@ async function loadSystemStatus() {
     // Populate model select dropdown without disabling options
     const select = $('model-select');
     select.innerHTML = registeredModels.map((m) => {
-      const statusTag = m.available ? '✓ AVAILABLE' : '⚠️ MISSING CHECKPOINT';
+      const statusTag = m.available ? 'AVAILABLE' : 'MISSING CHECKPOINT';
       const primaryTag = m.primary ? ' [PRIMARY]' : '';
       return `<option value="${escapeHtml(m.id)}">${escapeHtml(m.name)}${primaryTag} · ${statusTag}</option>`;
     }).join('');
@@ -444,8 +444,7 @@ function renderPredictionResults(data) {
   const psnrVal = (data.psnr && data.psnr.db) ? data.psnr.db : (data.explanation?.panels?.psnr_db || '42.4');
   if ($('result-psnr-val')) {
     const psnrNum = parseFloat(psnrVal);
-    const tag = psnrNum >= 40.0 ? '💎 ' : '';
-    $('result-psnr-val').textContent = `${tag}${psnrVal} dB`;
+    $('result-psnr-val').textContent = `${psnrVal} dB`;
     $('result-psnr-val').style.color = psnrNum >= 40.0 ? '#3fb950' : '#00d2ff';
   }
 
@@ -517,7 +516,7 @@ function renderPredictionResults(data) {
   if (gtBanner) {
     if (activeBenchmarkCase) {
       gtBanner.hidden = false;
-      $('gt-icon').textContent = activeBenchmarkCase.icon || '🔬';
+      $('gt-icon').textContent = activeBenchmarkCase.icon || '';
       $('gt-title').textContent = `Radiologist Ground Truth: ${activeBenchmarkCase.name}`;
       $('gt-report-text').innerHTML = `<strong>Radiologist Ground Truth:</strong> ${escapeHtml(activeBenchmarkCase.radiologist_report)}`;
       $('gt-concordance-text').textContent = `Expected: ${activeBenchmarkCase.expected_concordance}`;
@@ -538,10 +537,10 @@ function renderPredictionResults(data) {
       const accBadge = $('gt-accuracy-badge');
       if (accBadge) {
         if (isMatch) {
-          accBadge.textContent = '✅ Verified Match';
+          accBadge.textContent = 'Verified Match';
           accBadge.style.color = '#3fb950';
         } else {
-          accBadge.textContent = '⚠️ Review Recommended';
+          accBadge.textContent = 'Review Recommended';
           accBadge.style.color = '#d29922';
         }
       }
@@ -571,7 +570,7 @@ function renderPredictionResults(data) {
     $('radiograph-psnr-badge').style.color = psnrNum >= 40.0 ? '#3fb950' : '#00d2ff';
   }
   if ($('radiograph-disease-badge')) {
-    $('radiograph-disease-badge').textContent = `🎯 ${data.highest_finding || 'Finding'} (${((data.highest_probability || 0) * 100).toFixed(1)}%)`;
+    $('radiograph-disease-badge').textContent = `${data.highest_finding || 'Finding'} (${((data.highest_probability || 0) * 100).toFixed(1)}%)`;
   }
   if ($('psnr-fidelity-rating')) {
     $('psnr-fidelity-rating').textContent = data.psnr?.quality || 'Over 40 dB — Excellent / Optimal Fidelity';
@@ -587,7 +586,7 @@ function renderPredictionResults(data) {
     if (data.bounding_boxes && data.bounding_boxes.length > 0) {
       subregionsContainer.innerHTML = data.bounding_boxes.map((b) => `
         <div style="font-size: 0.8rem; background: rgba(255,255,255,0.04); border-left: 2px solid #58a6ff; padding: 4px 8px; border-radius: 3px; display: flex; justify-content: space-between;">
-          <span style="color: #e6edf3;">📍 <strong>${escapeHtml(b.zone)}</strong></span>
+          <span style="color: #e6edf3;"><strong>${escapeHtml(b.zone)}</strong></span>
           <span style="color: #00d2ff;">Peak: ${b.peak_norm}</span>
         </div>
       `).join('');
@@ -645,7 +644,7 @@ function renderPredictionResults(data) {
     bbList.innerHTML = data.bounding_boxes.map((b) => `
       <div class="bounding-box-item" style="background: rgba(255,255,255,0.04); border-left: 3px solid #ff4444; padding: 8px 12px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
         <div>
-          <strong style="color: #e6edf3;">📍 ${escapeHtml(b.zone)}</strong>
+          <strong style="color: #e6edf3;">${escapeHtml(b.zone)}</strong>
           <div style="font-size: 0.8rem; color: #8b949e; margin-top: 2px;">${escapeHtml(b.label)}</div>
         </div>
         <div style="text-align: right;">
@@ -811,7 +810,7 @@ function renderGraphRAGEvidence(graphData) {
   // Render anatomical tags
   const tagsBox = $('anatomical-regions-box');
   const regions = explanation.anatomical_regions || [];
-  tagsBox.innerHTML = regions.map((r) => `<span class="tag-pill">🫁 ${escapeHtml(r)}</span>`).join('') || '<span class="tag-pill">Thoracic Cavity</span>';
+  tagsBox.innerHTML = regions.map((r) => `<span class="tag-pill">${escapeHtml(r)}</span>`).join('') || '<span class="tag-pill">Thoracic Cavity</span>';
 
   // Render relations viewport
   const relationsViewport = $('graph-relations-viewport');

@@ -251,22 +251,22 @@ class MedicalPredictor:
         # Diagnostic Certainty Tiering
         if len(positive_findings) == 0 or focus_prob < 0.35:
             certainty_tier = "Clear Negative"
-            certainty_badge = "🔴 Negative / No Significant Pathology"
+            certainty_badge = "Negative / No Significant Pathology"
             certainty_color = "#8b949e"
             certainty_desc = "All 13 findings are below threshold. Bilateral lung fields and cardiac silhouette appear within normal limits."
         elif focus_prob >= 0.70:
             certainty_tier = "Confirmed High Certainty"
-            certainty_badge = "🟢 Confirmed High Certainty"
+            certainty_badge = "Confirmed High Certainty"
             certainty_color = "#3fb950"
             certainty_desc = f"Strong evidence for {focus_finding} ({focus_prob*100:.1f}%). Confirmed by high-contrast focal feature attribution."
         elif focus_prob >= 0.50:
             certainty_tier = "Probable / Moderate Suspicion"
-            certainty_badge = "🟡 Probable / Moderate Suspicion"
+            certainty_badge = "Probable / Moderate Suspicion"
             certainty_color = "#d29922"
             certainty_desc = f"Moderate evidence for {focus_finding} ({focus_prob*100:.1f}%). Clinical correlation and cross-model consensus advised."
         else:
             certainty_tier = "Borderline / Low Suspicion"
-            certainty_badge = "⚪ Borderline / Low Suspicion"
+            certainty_badge = "Borderline / Low Suspicion"
             certainty_color = "#8b949e"
             certainty_desc = f"Marginal elevation for {focus_finding} ({focus_prob*100:.1f}%). Does not meet high-confidence diagnostic threshold."
 
@@ -358,7 +358,7 @@ class MedicalPredictor:
                 "consensus": {
                     "level": "rejected",
                     "title": "Input Rejected by Out-of-Distribution Filter",
-                    "badge": "🔴 Input Out-of-Distribution",
+                    "badge": "Input Out-of-Distribution",
                     "agreement_count": 0,
                     "dominant_finding": None,
                     "description": ood_result["user_message"],
@@ -447,7 +447,7 @@ class MedicalPredictor:
         if not primary_findings:
             consensus_level = "all_abstained"
             consensus_title = "All Models Abstained — Uncertain / Ambiguous Scan"
-            consensus_badge = "⚪ Low Diagnostic Confidence / Abstained"
+            consensus_badge = "Low Diagnostic Confidence / Abstained"
             consensus_desc = "No architecture detected a finding meeting its calibrated diagnostic threshold. Expert radiologist review is required."
             agreement_count = 0
             dominant_finding = None
@@ -458,27 +458,27 @@ class MedicalPredictor:
             if top_count == 4:
                 consensus_level = "unanimous"
                 consensus_title = f"Unanimous Agreement (4/4 Models): {dominant_finding}"
-                consensus_badge = "🟢 Unanimous Agreement (4/4)"
+                consensus_badge = "Unanimous Agreement (4/4)"
                 consensus_desc = f"All four architectures independently identified {dominant_finding} as the primary diagnostic finding."
             elif top_count == 3:
                 consensus_level = "strong"
                 consensus_title = f"Strong Majority Consensus (3/4 Models): {dominant_finding}"
-                consensus_badge = "🟢 Strong Majority (3/4)"
+                consensus_badge = "Strong Majority (3/4)"
                 consensus_desc = f"Three models agree on {dominant_finding}. One model offered an alternative or abstained."
             elif top_count == 2 and len(counts) == 1:
                 consensus_level = "majority"
                 consensus_title = f"Consensus (2/2 Confident Models): {dominant_finding}"
-                consensus_badge = "🟡 Moderate Consensus"
+                consensus_badge = "Moderate Consensus"
                 consensus_desc = f"Both confident models concurred on {dominant_finding}."
             elif top_count == 2 and len(counts) > 1:
                 consensus_level = "split"
                 consensus_title = f"Split Consensus (2/4 Models Support {dominant_finding})"
-                consensus_badge = "🟡 Split Diagnostic Opinion"
+                consensus_badge = "Split Diagnostic Opinion"
                 consensus_desc = f"Partial agreement on {dominant_finding}, with dissenting predictions from other models."
             else:
                 consensus_level = "disagreement"
                 consensus_title = "Explicit Disagreement: Split Diagnostic Support"
-                consensus_badge = "🔴 Multi-Model Discrepancy"
+                consensus_badge = "Multi-Model Discrepancy"
                 consensus_desc = "Models differ on primary pathology. Diagnostic divergence highlighted below for clinical review."
 
             # Record model discrepancies

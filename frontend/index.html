@@ -41,42 +41,33 @@
     </div>
   </header>
 
-  <!-- Navigation Bar (6 Tabs) -->
+  <!-- Navigation Bar -->
   <nav class="studio-nav" aria-label="Main Navigation">
     <button class="nav-tab active" data-tab="analysis">
-      <span class="tab-icon">🫁</span>
       <span class="tab-label">Image Analysis</span>
     </button>
     <button class="nav-tab" data-tab="compare">
-      <span class="tab-icon">⚖️</span>
       <span class="tab-label">4-Model Comparison</span>
     </button>
     <button class="nav-tab" data-tab="openset">
-      <span class="tab-icon">🌐</span>
       <span class="tab-label">Open-Set Discovery</span>
     </button>
     <button class="nav-tab" data-tab="xai">
-      <span class="tab-icon">🔍</span>
       <span class="tab-label">Explainable AI (XAI)</span>
     </button>
     <button class="nav-tab" data-tab="integrity">
-      <span class="tab-icon">🛡️</span>
       <span class="tab-label">Model Scope & Bias</span>
     </button>
     <button class="nav-tab" data-tab="literature">
-      <span class="tab-icon">📚</span>
       <span class="tab-label">Medical Evidence</span>
     </button>
     <button class="nav-tab" data-tab="graphrag">
-      <span class="tab-icon">🕸️</span>
       <span class="tab-label">GraphRAG Evidence</span>
     </button>
     <button class="nav-tab" data-tab="benchmark">
-      <span class="tab-icon">📊</span>
       <span class="tab-label">Model Benchmark</span>
     </button>
     <button class="nav-tab" data-tab="about">
-      <span class="tab-icon">ℹ️</span>
       <span class="tab-label">About Project</span>
     </button>
   </nav>
@@ -99,7 +90,9 @@
             
             <label class="dropzone" id="dropzone" for="image-files">
               <input id="image-files" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
-              <div class="dropzone-icon">📋</div>
+              <div class="dropzone-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              </div>
               <strong class="dropzone-title">Drag & drop or paste (Ctrl+V) radiographs</strong>
               <span class="dropzone-hint">click to browse · 1 to 5 images · direct clipboard paste supported</span>
             </label>
@@ -117,33 +110,33 @@
             <!-- Verified Ground Truth Benchmark Cases -->
             <div class="benchmark-samples-section" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #30363d;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <span style="font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #58a6ff;">🔬 Radiologist Ground Truth Benchmarks</span>
+                <span style="font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #58a6ff;">Radiologist Ground Truth Benchmarks</span>
                 <span style="font-size: 0.72rem; color: #8b949e;">Click to verify</span>
               </div>
               <div id="benchmark-cases-list" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
-                <button type="button" class="benchmark-case-btn" data-case-id="cardiomegaly" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 0.78rem; background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; cursor: pointer; text-align: left; transition: all 0.2s;">
-                  <span>🫀</span>
+                <button type="button" class="benchmark-case-btn" data-case-id="cardiomegaly" style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 0.78rem; background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; cursor: pointer; text-align: left; transition: all 0.2s;">
+                  <span style="color:#58a6ff; font-weight:700; font-size:0.75rem; font-family:monospace;">#01</span>
                   <div>
                     <strong style="display: block; font-size: 0.76rem; color: #e6edf3;">Cardiomegaly</strong>
                     <small style="color: #3fb950; font-size: 0.68rem;">Verified Positive</small>
                   </div>
                 </button>
-                <button type="button" class="benchmark-case-btn" data-case-id="fracture" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 0.78rem; background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; cursor: pointer; text-align: left; transition: all 0.2s;">
-                  <span>🦴</span>
+                <button type="button" class="benchmark-case-btn" data-case-id="fracture" style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 0.78rem; background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; cursor: pointer; text-align: left; transition: all 0.2s;">
+                  <span style="color:#58a6ff; font-weight:700; font-size:0.75rem; font-family:monospace;">#02</span>
                   <div>
                     <strong style="display: block; font-size: 0.76rem; color: #e6edf3;">Rib Fracture</strong>
                     <small style="color: #3fb950; font-size: 0.68rem;">Verified Positive</small>
                   </div>
                 </button>
-                <button type="button" class="benchmark-case-btn" data-case-id="device" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 0.78rem; background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; cursor: pointer; text-align: left; transition: all 0.2s;">
-                  <span>🩺</span>
+                <button type="button" class="benchmark-case-btn" data-case-id="device" style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 0.78rem; background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; cursor: pointer; text-align: left; transition: all 0.2s;">
+                  <span style="color:#58a6ff; font-weight:700; font-size:0.75rem; font-family:monospace;">#03</span>
                   <div>
                     <strong style="display: block; font-size: 0.76rem; color: #e6edf3;">Support Device</strong>
                     <small style="color: #3fb950; font-size: 0.68rem;">Verified Positive</small>
                   </div>
                 </button>
-                <button type="button" class="benchmark-case-btn" data-case-id="normal" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 0.78rem; background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; cursor: pointer; text-align: left; transition: all 0.2s;">
-                  <span>🫁</span>
+                <button type="button" class="benchmark-case-btn" data-case-id="normal" style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 0.78rem; background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; cursor: pointer; text-align: left; transition: all 0.2s;">
+                  <span style="color:#58a6ff; font-weight:700; font-size:0.75rem; font-family:monospace;">#04</span>
                   <div>
                     <strong style="display: block; font-size: 0.76rem; color: #e6edf3;">Normal CXR</strong>
                     <small style="color: #8b949e; font-size: 0.68rem;">Verified Negative</small>
@@ -184,7 +177,7 @@
               </div>
               <div class="recommended-threshold-box" style="margin-top: 8px;">
                 <button type="button" class="action-btn-text" id="apply-rec-thresh-btn" style="color: #58a6ff; font-size: 0.82rem; cursor: pointer; text-decoration: underline; background: none; border: none; padding: 0;">
-                  ✨ Calibrated Optimal: <strong id="rec-thresh-display">0.40</strong> (Click to Apply)
+                  Calibrated Optimal: <strong id="rec-thresh-display">0.40</strong> (Click to Apply)
                 </button>
               </div>
             </div>
@@ -195,7 +188,7 @@
                 <span class="btn-arrow">→</span>
               </button>
               <button class="secondary-btn" id="run-compare-btn" style="background: #21262d; border: 1px solid #30363d; color: #58a6ff; font-weight: 600; padding: 10px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" disabled>
-                <span>⚖️ Compare All 4 Models</span>
+                <span>Compare All 4 Models</span>
               </button>
             </div>
             <p id="action-hint" class="field-description hint-subtle">Upload an image and choose an available model to begin.</p>
@@ -206,7 +199,9 @@
         <div class="workspace-content">
           <!-- OOD Alert Banner (Shown only when non-CXR uploaded) -->
           <div id="ood-alert-banner" class="alert-banner alert-danger" hidden>
-            <div class="alert-icon">⚠️</div>
+            <div class="alert-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
             <div class="alert-body">
               <h4 id="ood-alert-title">Input Rejected: Out-of-Distribution Image Detected</h4>
               <p id="ood-alert-message">This image could not be verified as a supported frontal chest radiograph.</p>
@@ -216,7 +211,9 @@
 
           <!-- Model Missing Checkpoint Notice -->
           <div id="checkpoint-missing-notice" class="alert-banner alert-warning" hidden>
-            <div class="alert-icon">ℹ️</div>
+            <div class="alert-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </div>
             <div class="alert-body">
               <h4 id="missing-notice-title">Checkpoint Missing</h4>
               <p id="missing-notice-text">Inference is disabled because no trained weights exist for this model.</p>
@@ -230,7 +227,9 @@
 
           <!-- Empty State -->
           <div id="empty-results-state" class="empty-display">
-            <div class="empty-icon">🩺</div>
+            <div class="empty-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: #58a6ff;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+            </div>
             <h3>Awaiting Radiograph Analysis</h3>
             <p>Upload 1 to 5 frontal chest X-ray images, configure your architecture, and click <strong>Analyze Chest Radiograph</strong> to generate 13 multi-label predictions and visual explanations.</p>
           </div>
@@ -261,7 +260,7 @@
               </div>
               <div class="meta-item">
                 <small>DIAGNOSTIC CERTAINTY</small>
-                <strong id="result-certainty-badge" style="color: #3fb950;">🟢 High Certainty</strong>
+                <strong id="result-certainty-badge" style="color: #3fb950;">High Certainty</strong>
               </div>
             </div>
 
@@ -299,7 +298,7 @@
               <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
                 <div style="flex: 1 1 300px;">
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 1.15rem;" id="gt-icon">🫀</span>
+                    <span style="font-size: 1.15rem;" id="gt-icon"></span>
                     <strong style="color: #58a6ff; font-size: 0.96rem;" id="gt-title">Verified Radiologist Benchmark Case</strong>
                     <span id="gt-badge" style="background: rgba(63, 185, 80, 0.2); color: #3fb950; border: 1px solid rgba(63, 185, 80, 0.4); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: bold;">Ground Truth Confirmed</span>
                   </div>
@@ -308,7 +307,7 @@
                 </div>
                 <div style="text-align: right; min-width: 160px;">
                   <span style="font-size: 0.72rem; color: #8b949e; text-transform: uppercase;">Prediction Accuracy</span>
-                  <div id="gt-accuracy-badge" style="font-size: 1.05rem; font-weight: bold; color: #3fb950;">✅ Match Confirmed</div>
+                  <div id="gt-accuracy-badge" style="font-size: 1.05rem; font-weight: bold; color: #3fb950;">Match Confirmed</div>
                 </div>
               </div>
             </div>
@@ -321,9 +320,9 @@
                   <span style="font-size: 0.8rem; color: #8b949e;">Disease bounding boxes & anatomical subregions labeled directly on radiograph</span>
                 </div>
                 <div class="view-toggles" style="display: flex; gap: 6px;">
-                  <button type="button" class="view-toggle-btn active" id="btn-toggle-annotated" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 4px; border: 1px solid #30363d; background: #21262d; color: #e6edf3; cursor: pointer; font-weight: 500;">🎯 Labeled BBoxes</button>
-                  <button type="button" class="view-toggle-btn" id="btn-toggle-fused" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 4px; border: 1px solid #30363d; background: #161b22; color: #8b949e; cursor: pointer; font-weight: 500;">🌈 Fused Overlay</button>
-                  <button type="button" class="view-toggle-btn" id="btn-toggle-clean" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 4px; border: 1px solid #30363d; background: #161b22; color: #8b949e; cursor: pointer; font-weight: 500;">🖼️ Clean Radiograph</button>
+                  <button type="button" class="view-toggle-btn active" id="btn-toggle-annotated" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 4px; border: 1px solid #30363d; background: #21262d; color: #e6edf3; cursor: pointer; font-weight: 500;">Labeled BBoxes</button>
+                  <button type="button" class="view-toggle-btn" id="btn-toggle-fused" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 4px; border: 1px solid #30363d; background: #161b22; color: #8b949e; cursor: pointer; font-weight: 500;">Fused Overlay</button>
+                  <button type="button" class="view-toggle-btn" id="btn-toggle-clean" style="padding: 5px 12px; font-size: 0.78rem; border-radius: 4px; border: 1px solid #30363d; background: #161b22; color: #8b949e; cursor: pointer; font-weight: 500;">Clean Radiograph</button>
                 </div>
               </div>
               <div style="display: flex; gap: 16px; align-items: stretch; flex-wrap: wrap; margin-top: 14px;">
@@ -395,13 +394,15 @@
         </div>
         <div>
           <button class="primary-btn" id="compare-run-btn" style="padding: 8px 16px; font-size: 0.85rem;">
-            <span>🔄 Re-run 4-Model Comparison</span>
+            <span>Re-run 4-Model Comparison</span>
           </button>
         </div>
       </div>
 
       <div id="compare-empty-state" class="empty-display">
-        <div class="empty-icon">⚖️</div>
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: #58a6ff;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
         <h3>Awaiting Multi-Model Comparison</h3>
         <p>Upload a chest radiograph in the <strong>Analysis Workspace</strong> and click <strong>Compare All 4 Models</strong> to evaluate consensus and divergence across all four architectures.</p>
       </div>
@@ -429,7 +430,7 @@
         <!-- Discrepancy Alert Banner (if models disagree) -->
         <div id="compare-discrepancy-card" class="studio-card" style="margin-bottom: 20px; border-left: 4px solid #d29922; background: rgba(210, 153, 34, 0.08); padding: 14px 18px;" hidden>
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-            <span style="font-size: 1.1rem;">⚠️</span>
+            <span style="display: inline-flex; align-items: center; color: #d29922;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
             <strong style="color: #d29922; font-size: 0.95rem;">Model Disagreement / Diagnostic Divergence Detected</strong>
           </div>
           <p id="compare-discrepancy-text" style="font-size: 0.85rem; color: #c9d1d9; margin: 0; line-height: 1.45;">The four architectures reached different diagnostic conclusions on this radiograph, indicating borderline attenuation or multifocal presentation. Radiologist correlation is strongly recommended.</p>
@@ -504,13 +505,15 @@
         </div>
         <div>
           <button class="primary-btn" id="openset-run-btn" style="padding: 8px 16px; font-size: 0.85rem;">
-            <span>🌐 Scan 28+ Thoracic Ontology</span>
+            <span>Scan 28+ Thoracic Ontology</span>
           </button>
         </div>
       </div>
 
       <div id="openset-empty-state" class="empty-display">
-        <div class="empty-icon">🌐</div>
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: #58a6ff;"><circle cx="12" cy="12" r="3"/><circle cx="19" cy="5" r="2"/><circle cx="5" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><line x1="7" y1="6" x2="10" y2="10"/><line x1="17" y1="6" x2="14" y2="10"/><line x1="7" y1="18" x2="10" y2="14"/><line x1="17" y1="18" x2="14" y2="14"/></svg>
+        </div>
         <h3>Awaiting Open-Set Radiograph Scan</h3>
         <p>Upload a chest radiograph in the <strong>Analysis Workspace</strong> and click <strong>Scan 28+ Thoracic Ontology</strong> to discover both known findings and expanded open-set pathologies.</p>
       </div>
@@ -565,7 +568,7 @@
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
           <input type="text" id="literature-search-input" class="studio-select" style="flex: 1 1 300px; padding: 10px 14px; font-size: 0.9rem;" placeholder="Search any thoracic finding (e.g. Cardiomegaly, Pneumoperitoneum, Fibrosis, Emphysema)...">
           <button class="primary-btn" id="literature-search-btn" style="padding: 10px 20px; font-size: 0.9rem;">
-            <span>🔍 Search PubMed Literature</span>
+            <span>Search PubMed Literature</span>
           </button>
         </div>
         <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
@@ -635,7 +638,9 @@
       </div>
 
       <div id="xai-empty-notice" class="empty-display">
-        <div class="empty-icon">🔬</div>
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: #58a6ff;"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </div>
         <h3>No Visual Attribution Generated Yet</h3>
         <p>Run inference on a chest radiograph in the <strong>Image Analysis</strong> tab to render the 4-panel visual attribution grid.</p>
       </div>

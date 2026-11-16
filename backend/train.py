@@ -219,7 +219,7 @@ def main():
             torch.save(payload, checkpoint_path)
             per_finding.to_csv(output_dir / f"{args.model}_metrics.csv", index=False)
             (output_dir / f"{args.model}_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-            print(f"  ✓ Best model saved to {checkpoint_path} (AUROC: {macro_auc})")
+            print(f"  [+] Best model saved to {checkpoint_path} (AUROC: {macro_auc})")
 
         epoch_rec = {
             "epoch": epoch,

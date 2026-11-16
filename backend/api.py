@@ -58,7 +58,7 @@ def get_benchmark_cases():
         {
             "id": "cardiomegaly",
             "name": "Cardiomegaly",
-            "icon": "🫀",
+            "icon": "",
             "badge": "Known Positive",
             "filename": "verified_cardiomegaly.jpg",
             "image_url": "/samples/verified_cardiomegaly.jpg",
@@ -71,7 +71,7 @@ def get_benchmark_cases():
         {
             "id": "fracture",
             "name": "Bone Fracture",
-            "icon": "🦴",
+            "icon": "",
             "badge": "Known Positive",
             "filename": "verified_fracture.jpg",
             "image_url": "/samples/verified_fracture.jpg",
@@ -84,7 +84,7 @@ def get_benchmark_cases():
         {
             "id": "device",
             "name": "Support Device",
-            "icon": "🩺",
+            "icon": "",
             "badge": "Known Positive",
             "filename": "verified_support_device.jpg",
             "image_url": "/samples/verified_support_device.jpg",
@@ -97,7 +97,7 @@ def get_benchmark_cases():
         {
             "id": "normal",
             "name": "Normal Radiograph",
-            "icon": "🫁",
+            "icon": "",
             "badge": "Known Negative",
             "filename": "sample_normal_cxr.png",
             "image_url": "/samples/sample_normal_cxr.png",
