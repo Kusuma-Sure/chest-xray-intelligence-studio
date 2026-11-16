@@ -97,29 +97,35 @@ def generate_benchmark_comparison_chart() -> str:
 
 
 def generate_finding_comparison_chart() -> str:
-    """Renders finding-wise AUROC comparison between Primary ViT and DenseNet baseline."""
+    """Renders finding-wise AUROC comparison across all four architectures."""
     db = load_benchmark_database()
     models = db.get("models", {})
     vit_per = models.get("vit", {}).get("per_finding", {})
     dense_per = models.get("densenet", {}).get("per_finding", {})
+    gat_per = models.get("gat", {}).get("per_finding", {})
+    caps_per = models.get("capsnet", {}).get("per_finding", {})
 
     findings = FINDINGS
     vit_auc = [vit_per.get(f, {}).get("auroc", 0.0) for f in findings]
     dense_auc = [dense_per.get(f, {}).get("auroc", 0.0) for f in findings]
+    gat_auc = [gat_per.get(f, {}).get("auroc", 0.0) for f in findings]
+    caps_auc = [caps_per.get(f, {}).get("auroc", 0.0) for f in findings]
 
     y = np.arange(len(findings))
-    height = 0.38
+    height = 0.20
 
-    fig, ax = plt.subplots(figsize=(10, 8), facecolor="#0d1117")
+    fig, ax = plt.subplots(figsize=(11, 9), facecolor="#0d1117")
     ax.set_facecolor("#161b22")
 
-    r1 = ax.barh(y + height / 2, vit_auc, height, label="ViT-B/16 (Primary Proposed)", color="#00d2ff")
-    r2 = ax.barh(y - height / 2, dense_auc, height, label="DenseNet121 (Baseline)", color="#6e7681")
+    r1 = ax.barh(y + 1.5 * height, vit_auc, height, label="ViT-B/16 (Primary Proposed)", color="#00d2ff")
+    r2 = ax.barh(y + 0.5 * height, dense_auc, height, label="DenseNet121 (CNN Baseline)", color="#3b82f6")
+    r3 = ax.barh(y - 0.5 * height, gat_auc, height, label="GAT (Region Graph)", color="#10b981")
+    r4 = ax.barh(y - 1.5 * height, caps_auc, height, label="CapsNet (Dynamic Routing)", color="#f59e0b")
 
     ax.set_xlabel("AUROC Score", color="#e6edf3", fontsize=11, fontweight="bold")
-    ax.set_title("Finding-wise AUROC: ViT-B/16 vs. DenseNet121 Baseline", color="#e6edf3", fontsize=13, fontweight="bold", pad=12)
+    ax.set_title("Finding-wise AUROC: Independent Evaluation across All 4 Architectures", color="#e6edf3", fontsize=13, fontweight="bold", pad=12)
     ax.set_yticks(y)
-    ax.set_yticklabels(findings, color="#e6edf3", fontsize=9)
+    ax.set_yticklabels(findings, color="#e6edf3", fontsize=9.5)
     ax.set_xlim(0, 1.05)
     ax.tick_params(colors="#8b949e")
     ax.grid(axis="x", linestyle="--", alpha=0.2, color="#8b949e")
@@ -152,6 +158,8 @@ def get_benchmark_register() -> dict[str, Any]:
             "micro_accuracy": m.get("micro_accuracy"),
             "validation_samples": m.get("validation_samples", 200),
             "training_epochs": m.get("training_epochs", "—"),
+            "loss_function": m.get("loss_function", "BCEWithLogitsLoss"),
+            "strengths": m.get("strengths", ""),
             "status": "Empirically Verified on CheXpert Validation Split",
         })
 

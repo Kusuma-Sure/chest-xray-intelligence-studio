@@ -51,8 +51,10 @@ class CapsuleLayer(nn.Module):
         self.routing_iterations = routing_iterations
 
         # Transformation weight tensor: [1, input_caps, output_caps, out_dim, in_dim]
+        # Xavier/He fan-in scaling (Sabour et al., 2017) prevents routing attenuation
+        std = 1.0 / (input_dim ** 0.5)
         self.W = nn.Parameter(
-            0.01 * torch.randn(1, num_input_capsules, num_output_capsules, output_dim, input_dim)
+            std * torch.randn(1, num_input_capsules, num_output_capsules, output_dim, input_dim)
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
