@@ -125,7 +125,18 @@ class OODDetector:
                 np.mean(norm_gray[3*h//4:, 3*w//4:] < 15)
             ) / 4.0
             if corners > 0.88:
-                is_circular_slice = True
+                # Distinguish collimated frontal chest radiographs from cranial axial MRI/CT:
+                # Frontal chest radiographs exhibit a radiopaque central mediastinal/spinal column
+                # with bilateral aerated (radiolucent) pulmonary zones.
+                center_strip = norm_gray[h//4 : 3*h//4, w//2 - 25 : w//2 + 25]
+                left_lung_zone = norm_gray[h//4 : 3*h//4, w//6 : w//3]
+                right_lung_zone = norm_gray[h//4 : 3*h//4, 2*w//3 : 5*w//6]
+                has_thoracic_gradient = (
+                    center_strip.mean() > left_lung_zone.mean() + 15 and
+                    center_strip.mean() > right_lung_zone.mean() + 15
+                )
+                if not has_thoracic_gradient:
+                    is_circular_slice = True
 
         # ======================================================================
         # CALCULATE COMPOSITE OOD SCORE (0.0 = Genuine CXR, 1.0 = High Anomaly)

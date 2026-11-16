@@ -107,26 +107,17 @@ class CapsNet(nn.Module):
     - Multi-label output: Capsule vector lengths serve as class probabilities
     """
 
-    def __init__(self, num_classes: int = 13, routing_iterations: int = 3) -> None:
+    def __init__(self, num_classes: int = 13, routing_iterations: int = 3, pretrained: bool = False) -> None:
         super().__init__()
         self.num_classes = num_classes
+        self.routing_iterations = routing_iterations
 
-        # 1. Convolutional feature extractor
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=5, stride=2, padding=2),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
-        )
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(64, 128, kernel_size=5, stride=2, padding=2),
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
-        )
-        self.conv3 = nn.Sequential(
-            nn.Conv2d(128, 128, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
-        )
+        # 1. Convolutional feature extractor (ResNet18 shallow features: Conv1 -> Layer2)
+        weights = tv_models.ResNet18_Weights.DEFAULT if pretrained else None
+        base = tv_models.resnet18(weights=weights)
+        self.conv1 = nn.Sequential(base.conv1, base.bn1, base.relu, base.maxpool)  # [B, 64, 56, 56]
+        self.conv2 = base.layer1  # [B, 64, 56, 56]
+        self.conv3 = base.layer2  # [B, 128, 28, 28]
 
         # 2. Primary capsules conversion
         self.primary_conv = nn.Conv2d(128, 16 * 8, kernel_size=3, stride=1, padding=1)
@@ -135,7 +126,7 @@ class CapsNet(nn.Module):
         self.pool = nn.AdaptiveAvgPool2d((7, 7))
         self.num_primary_capsules = 7 * 7 * 16  # 784
 
-        # 3. Disease capsules layer
+        # 3. Disease capsules layer with dynamic routing
         self.class_capsules = CapsuleLayer(
             num_input_capsules=self.num_primary_capsules,
             input_dim=8,
@@ -143,35 +134,31 @@ class CapsNet(nn.Module):
             output_dim=16,
             routing_iterations=routing_iterations,
         )
+        self.class_weights = nn.Parameter(torch.randn(num_classes, 16) * 0.1)
+        self.class_bias = nn.Parameter(torch.full((num_classes,), -1.5))
 
     def forward(self, x: torch.Tensor, return_dict: bool = False) -> torch.Tensor | dict[str, torch.Tensor]:
-        # Handle RGB input if passed by converting to 1-channel luminance
-        if x.size(1) == 3:
-            x = 0.299 * x[:, 0:1] + 0.587 * x[:, 1:2] + 0.114 * x[:, 2:3]
+        if x.size(1) == 1:
+            x = x.repeat(1, 3, 1, 1)
 
         # Conv feature extraction
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = self.conv3(x)
+        c1 = self.conv1(x)
+        c2 = self.conv2(c1)
+        c3 = self.conv3(c2)
 
         # Primary capsules
-        x = self.primary_conv(x)
-        x = self.pool(x)
+        pc = self.pool(self.primary_conv(c3))
+        batch_size = pc.size(0)
+        pc = pc.view(batch_size, self.num_primary_types, self.primary_dim, 7, 7)
+        pc = pc.permute(0, 1, 3, 4, 2).contiguous().view(batch_size, -1, self.primary_dim)
+        pc = squash(pc)
 
-        batch_size = x.size(0)
-        x = x.view(batch_size, self.num_primary_types, self.primary_dim, 7, 7)
-        x = x.permute(0, 1, 3, 4, 2).contiguous().view(batch_size, -1, self.primary_dim)
-        x = squash(x)
+        # Dynamic routing into disease capsules
+        class_capsules = self.class_capsules(pc)  # [B, 13, 16]
 
-        # Dynamic routing
-        class_capsules = self.class_capsules(x)  # [B, 13, 16]
-
-        # Capsule lengths represent multi-label probabilities
-        probabilities = torch.norm(class_capsules, dim=-1)
-        probabilities = torch.clamp(probabilities, 1e-7, 1.0 - 1e-7)
-
-        # Logit conversion for BCEWithLogitsLoss compatibility
-        logits = torch.log(probabilities / (1.0 - probabilities))
+        # Calibrated logit projection
+        logits = (class_capsules * self.class_weights.unsqueeze(0)).sum(dim=-1) + self.class_bias.unsqueeze(0)
+        probabilities = torch.sigmoid(logits)
 
         if return_dict:
             return {
@@ -240,7 +227,10 @@ class CheXpertViT(nn.Module):
                     attn_implementation="eager",
                 )
             else:
-                config = ViTConfig.from_pretrained(hf_model_id)
+                try:
+                    config = ViTConfig.from_pretrained(hf_model_id, local_files_only=True)
+                except Exception:
+                    config = ViTConfig.from_pretrained(hf_model_id)
                 config.num_labels = num_classes
                 config.problem_type = "multi_label_classification"
                 config._attn_implementation = "eager"
@@ -302,7 +292,7 @@ def build_model(model_name: str, pretrained: bool = False) -> nn.Module:
     elif key == "densenet":
         return CheXpertDenseNet121(num_classes=len(FINDINGS), pretrained=pretrained)
     elif key == "capsnet":
-        return CapsNet(num_classes=len(FINDINGS), routing_iterations=3)
+        return CapsNet(num_classes=len(FINDINGS), routing_iterations=3, pretrained=pretrained)
     elif key == "gat":
         return ImageGraphGAT(num_classes=len(FINDINGS), pretrained=pretrained)
     else:
