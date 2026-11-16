@@ -269,10 +269,12 @@ def draw_bounding_boxes_on_image(
     boxes: list[dict],
     color: tuple[int, int, int] = (255, 60, 60),
     line_width: int = 2,
+    psnr_db: float | None = None,
 ) -> Image.Image:
-    """Renders crisp bounding boxes with label badges directly onto the radiograph."""
+    """Renders crisp bounding boxes with label badges and PSNR directly onto the radiograph."""
     annotated = image.convert("RGB").copy()
     draw = ImageDraw.Draw(annotated)
+    w, h = annotated.size
 
     for b in boxes:
         bx1, by1, bx2, by2 = b["box"]
@@ -282,11 +284,24 @@ def draw_bounding_boxes_on_image(
         draw.rectangle([bx1, by1, bx2, by2], outline=color, width=line_width)
 
         # Draw filled label badge
-        badge_w = min(len(label_text) * 7 + 8, annotated.width - bx1)
+        badge_w = min(len(label_text) * 7 + 8, w - bx1)
         badge_h = 16
         badge_y = max(0, by1 - badge_h)
 
         draw.rectangle([bx1, badge_y, bx1 + badge_w, badge_y + badge_h], fill=color)
         draw.text((bx1 + 4, badge_y + 2), label_text, fill=(255, 255, 255))
+
+    # Render prominent PSNR badge directly on the presented radiograph
+    if psnr_db is not None:
+        psnr_tag = "Near-Lossless" if psnr_db >= 40.0 else ("Standard" if psnr_db >= 30.0 else "Compressed")
+        psnr_str = f"PSNR: {psnr_db:.1f} dB ({psnr_tag})"
+        badge_w = min(len(psnr_str) * 7 + 14, w - 16)
+        badge_h = 20
+        px1 = max(0, w - badge_w - 8)
+        py1 = max(0, h - badge_h - 8)
+        px2 = w - 8
+        py2 = h - 8
+        draw.rectangle([px1, py1, px2, py2], fill=(13, 17, 23), outline=(0, 210, 255), width=1)
+        draw.text((px1 + 6, py1 + 4), psnr_str, fill=(0, 210, 255))
 
     return annotated

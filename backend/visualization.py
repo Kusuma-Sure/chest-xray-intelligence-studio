@@ -124,9 +124,16 @@ def create_four_panel_grid(
             orig_size=(w, h),
         )
 
+    orig_np = np.array(orig_rgb, dtype=np.uint8)
+
+    from .data import enhance_radiograph_for_diagnostic_fidelity
+    from .metrics import calculate_psnr
+    enhanced_radiograph = enhance_radiograph_for_diagnostic_fidelity(original_image)
+    psnr_result = calculate_psnr(orig_np, np.array(enhanced_radiograph))
+
     # Panel 1: Original Clean & Annotated Radiograph
     panel_1_clean_url = image_to_data_url(orig_rgb)
-    annotated_img = draw_bounding_boxes_on_image(orig_rgb, bounding_boxes)
+    annotated_img = draw_bounding_boxes_on_image(orig_rgb, bounding_boxes, psnr_db=psnr_result["psnr_db"])
     panel_1_annotated_url = image_to_data_url(annotated_img)
 
     # Panel 2: Semantic Multi-Compartment Anatomical Mask
@@ -135,7 +142,6 @@ def create_four_panel_grid(
     if semantic_overlay is None:
         semantic_overlay = np.zeros((h, w, 3), dtype=np.uint8)
     # Blend with original radiograph for translucent anatomical reference
-    orig_np = np.array(orig_rgb, dtype=np.uint8)
     anatomy_fused = cv2.addWeighted(orig_np, 0.55, semantic_overlay, 0.45, 0)
     panel_2_img = Image.fromarray(anatomy_fused)
     panel_2_url = image_to_data_url(panel_2_img)
@@ -161,8 +167,8 @@ def create_four_panel_grid(
         gating_mask = anatomy.get("lung_mask")
 
     panel_4_fused_raw = create_fused_overlay(original_image, heatmap_raw, target_mask=gating_mask, alpha=0.45, beta=0.55)
-    # Draw bounding boxes onto Panel 4 fused overlay as well
-    panel_4_img = draw_bounding_boxes_on_image(panel_4_fused_raw, bounding_boxes, color=(255, 230, 0))
+    # Draw bounding boxes and PSNR badge onto Panel 4 fused overlay as well
+    panel_4_img = draw_bounding_boxes_on_image(panel_4_fused_raw, bounding_boxes, color=(255, 230, 0), psnr_db=psnr_result["psnr_db"])
     panel_4_url = image_to_data_url(panel_4_img)
 
     # ViT rollout or secondary edge view for optional reference
@@ -191,7 +197,7 @@ def create_four_panel_grid(
     axes[0].imshow(np.array(annotated_img))
     box_count = len(bounding_boxes)
     box_info = f" ({box_count} Focal Lesion{'s' if box_count != 1 else ''})" if box_count > 0 else ""
-    axes[0].set_title(f"Panel 1: Grounded Bounding Boxes{box_info}", color="#e6edf3", fontsize=11, pad=8, fontweight="bold")
+    axes[0].set_title(f"Panel 1: Grounded Bounding Boxes{box_info}\nPSNR: {psnr_result['psnr_db']} dB", color="#e6edf3", fontsize=11, pad=8, fontweight="bold")
 
     # Panel 2: Anatomical Segmentation Mask
     axes[1].imshow(anatomy_fused)
@@ -206,11 +212,6 @@ def create_four_panel_grid(
         "gat": "GAT Regional Attention",
     }.get(model_name.lower(), "Model Attribution")
     axes[2].set_title(f"Panel 3: {method_name}", color="#e6edf3", fontsize=11, pad=8, fontweight="bold")
-
-    from .data import enhance_radiograph_for_diagnostic_fidelity
-    from .metrics import calculate_psnr
-    enhanced_radiograph = enhance_radiograph_for_diagnostic_fidelity(original_image)
-    psnr_result = calculate_psnr(orig_np, np.array(enhanced_radiograph))
 
     # Panel 4: Fused Diagnostic Visual Overlay
     axes[3].imshow(np.array(panel_4_img))
