@@ -243,3 +243,157 @@ UNCERTAINTY_POLICIES = {
     "masked": "Mask uncertain (-1) labels during loss calculation (True multi-label loss masking)"
 }
 DEFAULT_UNCERTAINTY_POLICY = "zero"
+
+# ==============================================================================
+# EXPANDED THORACIC ONTOLOGY & OPEN-SET VISION-LANGUAGE MAPPINGS
+# ==============================================================================
+# Additional clinical findings beyond CheXpert 13 (Open-Set Candidates)
+ADDITIONAL_THORACIC_FINDINGS = [
+    "Emphysema",
+    "Pulmonary Fibrosis",
+    "Lung Nodule",
+    "Lung Mass",
+    "Pleural Thickening",
+    "Calcification",
+    "Hernia",
+    "Pneumoperitoneum",
+    "Scoliosis",
+    "Tuberculosis",
+    "Bronchiectasis",
+    "Subcutaneous Emphysema",
+    "Rib Fracture",
+    "Foreign Body",
+    "Normal / Unremarkable Findings"
+]
+
+ALL_THORACIC_FINDINGS = FINDINGS + ADDITIONAL_THORACIC_FINDINGS
+
+# Extended anatomical and clinical metadata for open-set candidate findings
+ADDITIONAL_ANATOMY = {
+    "Emphysema": {
+        "region": "Lung Parenchyma / Airspaces",
+        "subregions": ["Apical Lung Zones", "Centrilobular Spaces", "Panacinar Units"],
+        "category": "Chronic Airway Disease",
+        "visual_concept": "Hyperlucent, hyperinflated lung fields, flattened diaphragmatic domes, and increased retrosternal airspace",
+        "clinical_note": "Abnormal permanent enlargement of airspaces distal to terminal bronchioles with alveolar wall destruction."
+    },
+    "Pulmonary Fibrosis": {
+        "region": "Pulmonary Interstitium",
+        "subregions": ["Peripheral Subpleural Basilar Zones", "Bronchovascular Bundles"],
+        "category": "Interstitial Lung Disease",
+        "visual_concept": "Coarse reticular opacities, traction bronchiectasis, honeycombing, and basilar lung volume loss",
+        "clinical_note": "Chronic fibrosing interstitial pneumonia characterized by progressive architectural distortion."
+    },
+    "Lung Nodule": {
+        "region": "Lung Parenchyma",
+        "subregions": ["Upper Lobes", "Middle Lobe", "Lower Lobes", "Subpleural Space"],
+        "category": "Radiographic Observation",
+        "visual_concept": "Well-circumscribed or ill-defined spherical pulmonary opacity measuring less than or equal to 30 mm",
+        "clinical_note": "Discrete focal lesion requiring characterization of margins, density, calcification, and comparison with priors."
+    },
+    "Lung Mass": {
+        "region": "Lung Parenchyma / Hilum",
+        "subregions": ["Lobar Segments", "Central Hilar Region", "Peripheral Parenchyma"],
+        "category": "Radiographic Observation",
+        "visual_concept": "Large focal soft-tissue density opacity measuring strictly greater than 30 mm with potential mass effect",
+        "clinical_note": "High index of suspicion for primary thoracic neoplasm, large tuberculoma, or fungal abscess; urgent cross-sectional imaging indicated."
+    },
+    "Pleural Thickening": {
+        "region": "Pleural Membranes",
+        "subregions": ["Lateral Chest Wall", "Costophrenic Angles", "Apical Caps"],
+        "category": "Pleural Pathology",
+        "visual_concept": "Continuous or focal band of pleural soft-tissue density along the chest wall (>3mm thickness)",
+        "clinical_note": "Chronic fibrocalcific response following hemothorax, chronic infection, or environmental asbestos exposure."
+    },
+    "Calcification": {
+        "region": "Thorax (Parenchymal / Vascular / Nodal)",
+        "subregions": ["Granulomatous Foci", "Aortic Arch", "Hilar Lymph Nodes", "Costal Cartilages"],
+        "category": "Radiographic Observation",
+        "visual_concept": "Dense, well-defined radio-opaque bone-density mineralization within soft tissues or vessel walls",
+        "clinical_note": "Healed prior granulomatous infection (e.g., histoplasmosis/TB) or severe vascular atheroma."
+    },
+    "Hernia": {
+        "region": "Diaphragm / Mediastinum",
+        "subregions": ["Hiatal Aperture", "Morgagni Foramen", "Bochdalek Foramen"],
+        "category": "Anatomical Displacement",
+        "visual_concept": "Retrocardiac air-fluid level or soft-tissue mass projecting above the diaphragm contour",
+        "clinical_note": "Translocation of abdominal viscera into the thoracic cavity through diaphragmatic defect."
+    },
+    "Pneumoperitoneum": {
+        "region": "Subdiaphragmatic Space",
+        "subregions": ["Right Hemidiaphragm Undersurface", "Left Hemidiaphragm Undersurface"],
+        "category": "Critical Abdominal Emergency",
+        "visual_concept": "Free crescentic gas under the diaphragm domes on erect frontal chest radiograph",
+        "clinical_note": "Gastrointestinal perforation until proven otherwise; critical surgical emergency."
+    },
+    "Scoliosis": {
+        "region": "Thoracic Skeletal Cage",
+        "subregions": ["Thoracic Spine", "Rib Cage Alignment"],
+        "category": "Musculoskeletal Deformity",
+        "visual_concept": "Lateral spinal curvature exceeding 10 degrees Cobb angle with rotation of vertebral bodies and rib cage asymmetry",
+        "clinical_note": "Structural spinal deviation altering thoracic cavity volumes and cardiopulmonary silhouette position."
+    },
+    "Tuberculosis": {
+        "region": "Lung Parenchyma / Pleura",
+        "subregions": ["Apical-Posterior Segments", "Superior Segments Lower Lobes", "Hilar Nodes"],
+        "category": "Infectious Disease",
+        "visual_concept": "Apical fibro-cavitary consolidation, patchy nodular tree-in-bud opacities, or miliary micronodules",
+        "clinical_note": "Mycobacterium tuberculosis infection requiring acid-fast bacilli confirmation and respiratory isolation."
+    },
+    "Bronchiectasis": {
+        "region": "Bronchial Tree",
+        "subregions": ["Lower Lobes", "Middle Lobe", "Central Airway Zones"],
+        "category": "Airway Pathology",
+        "visual_concept": "Tram-track parallel bronchial wall thickening, signet-ring sign, and cystic airspaces with fluid levels",
+        "clinical_note": "Irreversible abnormal dilatation of bronchial airways due to recurrent infection or impaired mucociliary clearance."
+    },
+    "Subcutaneous Emphysema": {
+        "region": "Thoracic Soft Tissues",
+        "subregions": ["Neck Soft Tissues", "Lateral Chest Wall", "Pectoral Fascia"],
+        "category": "Soft Tissue Pathology",
+        "visual_concept": "Streaky, dissecting gas lucencies outlining muscle fascicles and soft tissues outside the bony thorax",
+        "clinical_note": "Air tracking into subcutaneous planes from pneumothorax, tracheobronchial rupture, or chest wall trauma."
+    },
+    "Rib Fracture": {
+        "region": "Thoracic Skeletal Cage",
+        "subregions": ["Posterior Rib Arcs", "Lateral Rib Arcs", "Anterior Rib Arcs"],
+        "category": "Traumatic Finding",
+        "visual_concept": "Sharp disruption of cortical rib margin with displacement, lucency, or overlapping bone fragment step-off",
+        "clinical_note": "Traumatic cortical break requiring inspection for underlying pneumothorax, pulmonary contusion, or flail chest."
+    },
+    "Foreign Body": {
+        "region": "Tracheobronchial Tree / Thorax",
+        "subregions": ["Right Mainstem Bronchus", "Left Mainstem Bronchus", "Esophagus", "Chest Wall"],
+        "category": "Iatrogenic / Aspirated Object",
+        "visual_concept": "Unexpected radio-opaque or non-anatomical object within the airway, gastrointestinal tract, or chest tissues",
+        "clinical_note": "Aspirated or ingested exogenous foreign material or surgical retainment requiring urgent retrieval."
+    },
+    "Normal / Unremarkable Findings": {
+        "region": "Entire Thorax",
+        "subregions": ["Bilateral Lungs", "Cardiomediastinum", "Pleural Spaces", "Thoracic Cage"],
+        "category": "Normal Diagnostic Baseline",
+        "visual_concept": "Clear bilateral lung parenchyma, sharp costophrenic angles, normal cardiothoracic ratio (<0.50), intact skeletal margins",
+        "clinical_note": "No acute radiographic cardiopulmonary abnormality identified on current projection."
+    }
+}
+
+COMPLETE_ANATOMY = {**FINDING_ANATOMY, **ADDITIONAL_ANATOMY}
+
+# Standardized clinical radiological prompt templates for vision-language matching
+CLINICAL_PROMPT_TEMPLATES = [
+    "a frontal chest radiograph showing {finding}",
+    "a chest X-ray demonstrating clear signs of {finding}",
+    "radiological image of thorax with {finding}",
+    "chest radiograph with presence of {finding} in the chest cavity"
+]
+
+# Open-Set & Uncertainty Configuration
+OPEN_SET_CONFIG = {
+    "energy_temperature": 1.0,
+    "min_confidence_threshold": 0.35,
+    "ood_energy_threshold": -4.5,
+    "candidate_similarity_threshold": 0.42,
+    "abstention_message": "No reliable prediction — further review required",
+    "disclaimer": "AI-generated finding candidate — requires review by a qualified radiologist."
+}
+

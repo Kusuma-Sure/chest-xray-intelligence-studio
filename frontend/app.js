@@ -313,12 +313,16 @@ function updateInferenceButtonState() {
   const modelId = $('model-select').value;
   const model = registeredModels.find((m) => m.id === modelId);
   const btn = $('run-inference-btn');
+  const compareBtn = $('run-compare-btn');
   const hint = $('action-hint');
 
   const hasImages = uploadedFiles.length > 0;
   const isReady = !!model?.available;
 
   btn.disabled = !hasImages || !isReady;
+  if (compareBtn) {
+    compareBtn.disabled = !hasImages;
+  }
 
   if (!hasImages) {
     hint.textContent = 'Upload 1 to 5 frontal chest radiographs to begin.';
@@ -448,6 +452,62 @@ function renderPredictionResults(data) {
   if (certBadge && data.diagnostic_certainty) {
     certBadge.textContent = data.diagnostic_certainty.badge;
     certBadge.style.color = data.diagnostic_certainty.color;
+  }
+
+  // Update Primary Diagnostic Conclusion & Ranked Alternatives Banner
+  const conclusionCard = $('primary-conclusion-card');
+  if (conclusionCard) {
+    const statusBadge = $('conclusion-status-badge');
+    const titleEl = $('primary-finding-title');
+    const narrativeEl = $('primary-clinical-narrative');
+    const confValEl = $('primary-confidence-value');
+    const threshHintEl = $('primary-threshold-hint');
+    const altListEl = $('ranked-alternatives-list');
+
+    if (data.should_abstain) {
+      if (statusBadge) {
+        statusBadge.textContent = 'Abstained — Low Diagnostic Certainty';
+        statusBadge.style.background = 'rgba(139, 148, 158, 0.2)';
+        statusBadge.style.color = '#8b949e';
+        statusBadge.style.borderColor = 'rgba(139, 148, 158, 0.4)';
+      }
+      conclusionCard.style.borderLeftColor = '#8b949e';
+      if (titleEl) titleEl.textContent = 'No reliable prediction — further review required';
+      if (narrativeEl) narrativeEl.textContent = data.clinical_narrative || data.abstention_reason || 'Model confidence did not satisfy acceptance threshold.';
+      if (confValEl) {
+        confValEl.textContent = `${((data.primary_confidence || 0) * 100).toFixed(1)}%`;
+        confValEl.style.color = '#8b949e';
+      }
+      if (threshHintEl) threshHintEl.textContent = `Operating Threshold: ${((data.recommended_threshold || 0.40) * 100).toFixed(0)}% (Unmet)`;
+    } else {
+      if (statusBadge) {
+        statusBadge.textContent = 'Confirmed Primary Finding';
+        statusBadge.style.background = 'rgba(63, 185, 80, 0.2)';
+        statusBadge.style.color = '#3fb950';
+        statusBadge.style.borderColor = 'rgba(63, 185, 80, 0.4)';
+      }
+      conclusionCard.style.borderLeftColor = '#3fb950';
+      if (titleEl) titleEl.textContent = data.primary_finding || data.highest_finding || 'Finding Detected';
+      if (narrativeEl) narrativeEl.textContent = data.clinical_narrative || `The model's highest-supported finding is ${data.primary_finding}. Other findings are listed as secondary alternatives.`;
+      if (confValEl) {
+        confValEl.textContent = `${((data.primary_confidence || data.highest_probability || 0) * 100).toFixed(1)}%`;
+        confValEl.style.color = '#58a6ff';
+      }
+      if (threshHintEl) threshHintEl.textContent = `Operating Threshold: ${((data.recommended_threshold || 0.40) * 100).toFixed(0)}%`;
+    }
+
+    if (altListEl) {
+      if (data.alternatives && data.alternatives.length > 0) {
+        altListEl.innerHTML = data.alternatives.map((alt) => `
+          <span style="padding: 4px 10px; background: #21262d; border: 1px solid #30363d; border-radius: 4px; font-size: 0.8rem; color: #c9d1d9; display: inline-flex; gap: 6px; align-items: center;">
+            <span>${escapeHtml(alt.finding)}</span>
+            <strong style="color: ${alt.passes_threshold ? '#3fb950' : '#8b949e'};">${(alt.probability * 100).toFixed(1)}%</strong>
+          </span>
+        `).join('');
+      } else {
+        altListEl.innerHTML = '<span style="color: #8b949e; font-size: 0.8rem;">No secondary alternative findings above baseline threshold.</span>';
+      }
+    }
   }
 
   // Update Ground Truth Verification Banner if benchmark case tested
@@ -872,6 +932,287 @@ async function initBenchmarkCases() {
 }
 
 // ==============================================================================
+// ==============================================================================
+// 10. FOUR-MODEL COMPARISON CONTROLLER
+// ==============================================================================
+
+async function runCompareAllModels() {
+  if (!uploadedFiles.length) {
+    showToast('Please upload a chest radiograph first.');
+    return;
+  }
+  const file = uploadedFiles[activeFileIndex];
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const thresh = $('threshold-slider')?.value;
+  let url = '/api/compare';
+  if (thresh) url += `?threshold=${thresh}`;
+
+  showToast('Running all 4 deep learning models independently…');
+  switchTab('compare');
+
+  const runBtn = $('run-compare-btn');
+  const compRunBtn = $('compare-run-btn');
+
+  if (runBtn) runBtn.disabled = true;
+  if (compRunBtn) compRunBtn.disabled = true;
+
+  try {
+    const res = await fetch(url, { method: 'POST', body: formData });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `Server returned ${res.status}`);
+    }
+    const data = await res.json();
+    if (data.is_ood) {
+      showToast(`Comparison aborted: ${data.rejection_reason}`, 5000);
+      return;
+    }
+    renderComparisonResults(data);
+    showToast('4-model comparative analysis completed.');
+  } catch (err) {
+    showToast(`Comparison error: ${err.message}`, 5000);
+  } finally {
+    if (runBtn) runBtn.disabled = false;
+    if (compRunBtn) compRunBtn.disabled = false;
+  }
+}
+
+function renderComparisonResults(data) {
+  $('compare-empty-state').hidden = true;
+  $('compare-results-container').hidden = false;
+
+  const consensus = data.consensus || {};
+  const cBadge = $('consensus-badge');
+  const cTitle = $('consensus-title');
+  const cDesc = $('consensus-description');
+  const cCard = $('compare-consensus-card');
+
+  if (cBadge) cBadge.textContent = consensus.badge || 'Empirical Consensus';
+  if (cTitle) cTitle.textContent = consensus.title || 'Diagnostic Consensus';
+  if (cDesc) cDesc.textContent = consensus.description || '';
+  if ($('compare-total-latency')) {
+    $('compare-total-latency').textContent = `${(data.total_elapsed_ms || 0).toFixed(0)} ms`;
+  }
+
+  // Border color based on consensus level
+  if (cCard) {
+    if (consensus.level === 'unanimous' || consensus.level === 'strong') {
+      cCard.style.borderLeftColor = '#3fb950';
+      cCard.style.background = 'rgba(63, 185, 80, 0.05)';
+    } else if (consensus.level === 'split' || consensus.level === 'majority') {
+      cCard.style.borderLeftColor = '#d29922';
+      cCard.style.background = 'rgba(210, 153, 34, 0.05)';
+    } else {
+      cCard.style.borderLeftColor = '#f85149';
+      cCard.style.background = 'rgba(248, 81, 73, 0.05)';
+    }
+  }
+
+  // Discrepancies
+  const discCard = $('compare-discrepancy-card');
+  const discText = $('compare-discrepancy-text');
+  if (discCard && discText) {
+    if (data.discrepancies && data.discrepancies.length > 0) {
+      discCard.hidden = false;
+      discText.innerHTML = data.discrepancies.map(d => `
+        <div style="margin-bottom: 4px;"><strong>${escapeHtml(d.model_name)}:</strong> ${escapeHtml(d.reason)}</div>
+      `).join('');
+    } else {
+      discCard.hidden = true;
+    }
+  }
+
+  // Matrix table
+  const tbody = $('compare-matrix-body');
+  if (tbody && data.models) {
+    tbody.innerHTML = data.models.map((m) => {
+      const isConfirmed = m.status === 'confirmed';
+      const statusColor = isConfirmed ? '#3fb950' : (m.status === 'abstained' ? '#8b949e' : '#f85149');
+      const statusLabel = isConfirmed ? 'Confirmed' : (m.status === 'abstained' ? 'Abstained' : 'Unavailable');
+      const alts = (m.alternatives || []).map(a => `${a.finding} (${(a.probability * 100).toFixed(0)}%)`).join(', ') || 'None';
+
+      return `
+        <tr style="border-bottom: 1px solid #21262d;">
+          <td style="padding: 10px; font-weight: 600; color: #e6edf3;">${escapeHtml(m.model_name)}</td>
+          <td style="padding: 10px; color: ${isConfirmed ? '#58a6ff' : '#8b949e'}; font-weight: ${isConfirmed ? '700' : '400'};">${escapeHtml(m.primary_finding)}</td>
+          <td style="padding: 10px; font-weight: 700; color: ${isConfirmed ? '#e6edf3' : '#8b949e'};">${(m.primary_confidence * 100).toFixed(1)}%</td>
+          <td style="padding: 10px; color: #8b949e;">${m.free_energy ? m.free_energy.toFixed(2) : '—'}</td>
+          <td style="padding: 10px; color: #8b949e;">${m.processing_time_ms ? m.processing_time_ms.toFixed(1) + ' ms' : '—'}</td>
+          <td style="padding: 10px;"><span style="padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: ${statusColor}22; color: ${statusColor}; border: 1px solid ${statusColor}55;">${statusLabel}</span></td>
+          <td style="padding: 10px; color: #8b949e; font-size: 0.8rem;">${escapeHtml(alts)}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // 4-Panel Comparative Attributions
+  const vitModel = data.models?.find(m => m.model_id === 'vit');
+  const densenetModel = data.models?.find(m => m.model_id === 'densenet');
+  const capsnetModel = data.models?.find(m => m.model_id === 'capsnet');
+  const gatModel = data.models?.find(m => m.model_id === 'gat');
+
+  if (vitModel && $('compare-img-vit')) {
+    const src = vitModel.panels?.panel_4_fused || vitModel.panels?.panel_3_attribution || vitModel.annotated_image;
+    if (src) $('compare-img-vit').src = src;
+    $('compare-lbl-vit').textContent = `${vitModel.primary_finding} (${(vitModel.primary_confidence * 100).toFixed(1)}%)`;
+  }
+  if (densenetModel && $('compare-img-densenet')) {
+    const src = densenetModel.panels?.panel_4_fused || densenetModel.panels?.panel_3_attribution || densenetModel.annotated_image;
+    if (src) $('compare-img-densenet').src = src;
+    $('compare-lbl-densenet').textContent = `${densenetModel.primary_finding} (${(densenetModel.primary_confidence * 100).toFixed(1)}%)`;
+  }
+  if (capsnetModel && $('compare-img-capsnet')) {
+    const src = capsnetModel.panels?.panel_4_fused || capsnetModel.panels?.panel_3_attribution || capsnetModel.annotated_image;
+    if (src) $('compare-img-capsnet').src = src;
+    $('compare-lbl-capsnet').textContent = `${capsnetModel.primary_finding} (${(capsnetModel.primary_confidence * 100).toFixed(1)}%)`;
+  }
+  if (gatModel && $('compare-img-gat')) {
+    const src = gatModel.panels?.panel_4_fused || gatModel.panels?.panel_3_attribution || gatModel.annotated_image;
+    if (src) $('compare-img-gat').src = src;
+    $('compare-lbl-gat').textContent = `${gatModel.primary_finding} (${(gatModel.primary_confidence * 100).toFixed(1)}%)`;
+  }
+}
+
+// ==============================================================================
+// 11. OPEN-SET DISCOVERY & CANDIDATE MATCHING CONTROLLER
+// ==============================================================================
+
+async function runOpenSetScan() {
+  if (!uploadedFiles.length) {
+    showToast('Please upload a chest radiograph first.');
+    return;
+  }
+  const file = uploadedFiles[activeFileIndex];
+  const formData = new FormData();
+  formData.append('image', file);
+
+  showToast('Scanning 28+ thoracic disease vocabulary with vision-language matching…');
+  switchTab('openset');
+
+  const btn = $('openset-run-btn');
+  if (btn) btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/open-set-predict?top_k=8', { method: 'POST', body: formData });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `Server returned ${res.status}`);
+    }
+    const data = await res.json();
+    renderOpenSetResults(data);
+    showToast('Open-set thoracic candidate analysis complete.');
+  } catch (err) {
+    showToast(`Open-Set scan error: ${err.message}`, 5000);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function renderOpenSetResults(data) {
+  $('openset-empty-state').hidden = true;
+  $('openset-results-container').hidden = false;
+
+  if ($('openset-energy-val')) {
+    $('openset-energy-val').textContent = data.free_energy ? data.free_energy.toFixed(2) : '—';
+  }
+
+  const topCand = data.candidates && data.candidates.length > 0 ? data.candidates[0] : null;
+  if ($('openset-top-candidate')) {
+    $('openset-top-candidate').textContent = topCand ? `${topCand.finding} (${(topCand.score * 100).toFixed(1)}%)` : '—';
+  }
+
+  const grid = $('openset-candidates-grid');
+  if (grid && data.candidates) {
+    grid.innerHTML = data.candidates.map((cand, idx) => {
+      const isExp = cand.is_open_set;
+      const tagBg = isExp ? 'rgba(188, 140, 255, 0.15)' : 'rgba(56, 139, 253, 0.15)';
+      const tagColor = isExp ? '#bc8cff' : '#58a6ff';
+      const tagLabel = isExp ? 'Open-Set Candidate (Unseen in Supervised)' : 'CheXpert Supervised Class';
+
+      return `
+        <div class="studio-card candidate-card" style="border: 1px solid #30363d; background: rgba(255,255,255,0.02); padding: 14px; border-radius: 6px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
+              <div>
+                <span style="font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; background: ${tagBg}; color: ${tagColor}; font-weight: 600;">${tagLabel}</span>
+                <h4 style="margin: 6px 0 2px 0; font-size: 1.05rem; color: #ffffff;">#${idx + 1} ${escapeHtml(cand.finding)}</h4>
+                <small style="color: #8b949e; font-size: 0.75rem;">${escapeHtml(cand.region)}</small>
+              </div>
+              <div style="text-align: right;">
+                <strong style="font-size: 1.25rem; color: ${cand.score >= 0.40 ? '#3fb950' : '#e6edf3'};">${(cand.score * 100).toFixed(1)}%</strong>
+                <small style="display: block; font-size: 0.68rem; color: #8b949e;">Similarity</small>
+              </div>
+            </div>
+            <div class="progress-bar-bg" style="width: 100%; height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
+              <div style="width: ${Math.min(100, Math.max(0, cand.score * 100))}%; height: 100%; background: ${cand.score >= 0.40 ? '#3fb950' : '#58a6ff'};"></div>
+            </div>
+            <p style="font-size: 0.8rem; color: #c9d1d9; line-height: 1.45; margin: 0 0 8px 0;">${escapeHtml(cand.visual_concept || cand.clinical_note || '')}</p>
+          </div>
+          <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #21262d; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.72rem; color: #8b949e;">${escapeHtml(cand.category)}</span>
+            <button type="button" class="action-btn-text" onclick="searchLiterature('${escapeHtml(cand.finding)}')" style="color: #58a6ff; font-size: 0.75rem; text-decoration: underline; background: none; border: none; cursor: pointer;">
+              Explore PubMed Citations →
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+// ==============================================================================
+// 12. MEDICAL EVIDENCE & LITERATURE (PUBMED / NCBI) CONTROLLER
+// ==============================================================================
+
+async function searchLiterature(findingName) {
+  if (!findingName) return;
+  switchTab('literature');
+  const input = $('literature-search-input');
+  if (input) input.value = findingName;
+
+  showToast(`Retrieving verified literature for "${findingName}"…`);
+
+  try {
+    const res = await fetch(`/api/medical-evidence?finding=${encodeURIComponent(findingName)}`);
+    if (!res.ok) {
+      throw new Error(`Failed to retrieve evidence (${res.status})`);
+    }
+    const data = await res.json();
+    renderLiteratureResult(data);
+  } catch (err) {
+    showToast(`Literature retrieval error: ${err.message}`, 5000);
+  }
+}
+
+function renderLiteratureResult(data) {
+  if (!data) return;
+
+  if ($('lit-source-badge')) {
+    $('lit-source-badge').textContent = data.source_id || 'NCBI / PUBMED CITATION';
+  }
+  if ($('lit-title-display')) {
+    $('lit-title-display').textContent = data.title || `${data.finding} Imaging`;
+  }
+  if ($('lit-source-link')) {
+    $('lit-source-link').href = data.source_url || '#';
+  }
+  if ($('lit-evidence-text')) {
+    $('lit-evidence-text').textContent = data.evidence_text || 'Peer-reviewed evidence on clinical diagnostic criteria.';
+  }
+  if ($('lit-region-display')) {
+    $('lit-region-display').textContent = data.anatomical_region || 'Thorax';
+  }
+  if ($('lit-visual-display')) {
+    $('lit-visual-display').textContent = data.visual_concept || 'Radiographic density alteration';
+  }
+  if ($('lit-pubmed-link')) {
+    $('lit-pubmed-link').href = data.pubmed_search_url || `https://pubmed.ncbi.nlm.nih.gov/?term=${encodeURIComponent(data.finding)}`;
+  }
+}
+
+// ==============================================================================
 // INITIALIZATION
 // ==============================================================================
 
@@ -880,4 +1221,28 @@ window.addEventListener('DOMContentLoaded', () => {
   loadBenchmarks();
   loadFindingEvidence("Lung Opacity");
   initBenchmarkCases();
+
+  // Attach Comparison, Open-Set & Literature event listeners
+  $('run-compare-btn')?.addEventListener('click', runCompareAllModels);
+  $('compare-run-btn')?.addEventListener('click', runCompareAllModels);
+  $('openset-run-btn')?.addEventListener('click', runOpenSetScan);
+
+  $('literature-search-btn')?.addEventListener('click', () => {
+    const val = $('literature-search-input')?.value;
+    if (val) searchLiterature(val);
+  });
+  $('literature-search-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const val = $('literature-search-input')?.value;
+      if (val) searchLiterature(val);
+    }
+  });
+
+  document.querySelectorAll('.lit-quick-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const finding = btn.dataset.finding;
+      if (finding) searchLiterature(finding);
+    });
+  });
 });
+

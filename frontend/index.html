@@ -47,6 +47,14 @@
       <span class="tab-icon">🫁</span>
       <span class="tab-label">Image Analysis</span>
     </button>
+    <button class="nav-tab" data-tab="compare">
+      <span class="tab-icon">⚖️</span>
+      <span class="tab-label">4-Model Comparison</span>
+    </button>
+    <button class="nav-tab" data-tab="openset">
+      <span class="tab-icon">🌐</span>
+      <span class="tab-label">Open-Set Discovery</span>
+    </button>
     <button class="nav-tab" data-tab="xai">
       <span class="tab-icon">🔍</span>
       <span class="tab-label">Explainable AI (XAI)</span>
@@ -54,6 +62,10 @@
     <button class="nav-tab" data-tab="integrity">
       <span class="tab-icon">🛡️</span>
       <span class="tab-label">Model Scope & Bias</span>
+    </button>
+    <button class="nav-tab" data-tab="literature">
+      <span class="tab-icon">📚</span>
+      <span class="tab-label">Medical Evidence</span>
     </button>
     <button class="nav-tab" data-tab="graphrag">
       <span class="tab-icon">🕸️</span>
@@ -177,10 +189,13 @@
               </div>
             </div>
 
-            <div class="action-row">
+            <div class="action-row" style="display: flex; flex-direction: column; gap: 8px;">
               <button class="primary-btn" id="run-inference-btn" disabled>
                 <span class="btn-text">Analyze Chest Radiograph</span>
                 <span class="btn-arrow">→</span>
+              </button>
+              <button class="secondary-btn" id="run-compare-btn" style="background: #21262d; border: 1px solid #30363d; color: #58a6ff; font-weight: 600; padding: 10px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" disabled>
+                <span>⚖️ Compare All 4 Models</span>
               </button>
             </div>
             <p id="action-hint" class="field-description hint-subtle">Upload an image and choose an available model to begin.</p>
@@ -247,6 +262,34 @@
               <div class="meta-item">
                 <small>DIAGNOSTIC CERTAINTY</small>
                 <strong id="result-certainty-badge" style="color: #3fb950;">🟢 High Certainty</strong>
+            </div>
+
+            <!-- Primary Diagnostic Conclusion & Ranked Alternatives Card -->
+            <div class="studio-card primary-conclusion-card" id="primary-conclusion-card" style="margin-bottom: 16px; border-left: 4px solid #58a6ff; background: rgba(56, 139, 253, 0.05); padding: 18px 22px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+                <div style="flex: 1 1 340px;">
+                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                    <span class="card-kicker" style="color: #58a6ff; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.08em;">PRIMARY DIAGNOSTIC CONCLUSION</span>
+                    <span id="conclusion-status-badge" style="padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: rgba(63, 185, 80, 0.2); color: #3fb950; border: 1px solid rgba(63, 185, 80, 0.4);">Confirmed Finding</span>
+                  </div>
+                  <h2 id="primary-finding-title" style="margin: 0 0 8px 0; font-size: 1.5rem; color: #ffffff;">Cardiomegaly</h2>
+                  <p id="primary-clinical-narrative" style="margin: 0 0 12px 0; font-size: 0.9rem; line-height: 1.5; color: #c9d1d9;">
+                    The model's highest-supported finding is Cardiomegaly. Other findings are listed as secondary alternatives and must not be represented as confirmed diagnoses.
+                  </p>
+                  
+                  <!-- Ranked Alternatives List -->
+                  <div id="ranked-alternatives-container" style="margin-top: 10px;">
+                    <strong style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: #8b949e; display: block; margin-bottom: 6px;">Ranked Alternative Findings:</strong>
+                    <div id="ranked-alternatives-list" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                      <!-- Dynamically populated -->
+                    </div>
+                  </div>
+                </div>
+                <div style="text-align: right; min-width: 140px;">
+                  <span style="font-size: 0.75rem; text-transform: uppercase; color: #8b949e; display: block;">Calibrated Confidence</span>
+                  <div id="primary-confidence-value" style="font-size: 2.2rem; font-weight: 800; color: #58a6ff;">84.2%</div>
+                  <small id="primary-threshold-hint" style="color: #8b949e; font-size: 0.75rem;">Threshold: 40%</small>
+                </div>
               </div>
             </div>
 
@@ -341,7 +384,240 @@
     </section>
 
     <!-- ================================================================= -->
-    <!-- TAB 2: EXPLAINABLE AI (XAI) DASHBOARD                             -->
+    <!-- TAB 2: FOUR-MODEL COMPARISON WORKSPACE                            -->
+    <!-- ================================================================= -->
+    <section class="tab-panel" id="panel-compare">
+      <div class="xai-header-bar">
+        <div>
+          <h2>Four-Model Multi-Architecture Comparative Analysis</h2>
+          <p>Executes ViT-B/16, DenseNet121, CapsNet, and GAT independently on the same radiograph with zero state coupling.</p>
+        </div>
+        <div>
+          <button class="primary-btn" id="compare-run-btn" style="padding: 8px 16px; font-size: 0.85rem;">
+            <span>🔄 Re-run 4-Model Comparison</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="compare-empty-state" class="empty-display">
+        <div class="empty-icon">⚖️</div>
+        <h3>Awaiting Multi-Model Comparison</h3>
+        <p>Upload a chest radiograph in the <strong>Analysis Workspace</strong> and click <strong>Compare All 4 Models</strong> to evaluate consensus and divergence across all four architectures.</p>
+      </div>
+
+      <div id="compare-results-container" class="results-container" hidden>
+        <!-- Empirical Consensus Banner -->
+        <div class="studio-card consensus-card" id="compare-consensus-card" style="margin-bottom: 20px; border-left: 4px solid #3fb950; background: rgba(63, 185, 80, 0.05); padding: 18px 22px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+            <div style="flex: 1 1 360px;">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <span class="card-kicker" style="color: #3fb950; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.08em;">EMPIRICAL MULTI-MODEL CONSENSUS</span>
+                <span id="consensus-badge" style="padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; background: rgba(63, 185, 80, 0.2); color: #3fb950; border: 1px solid rgba(63, 185, 80, 0.4);">Unanimous Consensus</span>
+              </div>
+              <h3 id="consensus-title" style="margin: 0 0 6px 0; font-size: 1.35rem; color: #ffffff;">All 4 Models Agree on Primary Finding</h3>
+              <p id="consensus-description" style="margin: 0; font-size: 0.88rem; line-height: 1.5; color: #c9d1d9;">Every architecture independently identified the primary pathology with calibrated confidence.</p>
+            </div>
+            <div style="text-align: right; min-width: 140px;">
+              <span style="font-size: 0.75rem; text-transform: uppercase; color: #8b949e; display: block;">Total Latency</span>
+              <div id="compare-total-latency" style="font-size: 1.8rem; font-weight: 800; color: #58a6ff;">— ms</div>
+              <small style="color: #8b949e; font-size: 0.75rem;">4 Independent Runs</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Discrepancy Alert Banner (if models disagree) -->
+        <div id="compare-discrepancy-card" class="studio-card" style="margin-bottom: 20px; border-left: 4px solid #d29922; background: rgba(210, 153, 34, 0.08); padding: 14px 18px;" hidden>
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+            <span style="font-size: 1.1rem;">⚠️</span>
+            <strong style="color: #d29922; font-size: 0.95rem;">Model Disagreement / Diagnostic Divergence Detected</strong>
+          </div>
+          <p id="compare-discrepancy-text" style="font-size: 0.85rem; color: #c9d1d9; margin: 0; line-height: 1.45;">The four architectures reached different diagnostic conclusions on this radiograph, indicating borderline attenuation or multifocal presentation. Radiologist correlation is strongly recommended.</p>
+        </div>
+
+        <!-- Side-by-Side Comparison Matrix Table -->
+        <div class="studio-card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <h3>Side-by-Side Architectural Matrix</h3>
+            <span class="card-badge">Strict Independence · No Mocking</span>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="studio-table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+              <thead>
+                <tr style="border-bottom: 1px solid #30363d; text-align: left; color: #8b949e;">
+                  <th style="padding: 10px;">Architecture</th>
+                  <th style="padding: 10px;">Primary Conclusion</th>
+                  <th style="padding: 10px;">Calibrated Score</th>
+                  <th style="padding: 10px;">Free Energy</th>
+                  <th style="padding: 10px;">Inference Time</th>
+                  <th style="padding: 10px;">Status</th>
+                  <th style="padding: 10px;">Ranked Alternatives</th>
+                </tr>
+              </thead>
+              <tbody id="compare-matrix-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 4-Model Comparative Visual Explanations Grid -->
+        <div class="studio-card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <h3>Four-Model Side-by-Side Visual Attributions</h3>
+            <span style="font-size: 0.8rem; color: #8b949e;">Independent visual reasoning on the exact same radiograph</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 14px;">
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid #30363d; border-radius: 6px; padding: 10px; text-align: center;">
+              <strong style="color: #58a6ff; font-size: 0.85rem; display: block; margin-bottom: 6px;">ViT-B/16 (Rollout)</strong>
+              <img id="compare-img-vit" style="width: 100%; border-radius: 4px; aspect-ratio: 1; object-fit: cover; background: #000;" alt="ViT Attention Rollout">
+              <span id="compare-lbl-vit" style="font-size: 0.78rem; color: #c9d1d9; display: block; margin-top: 6px;">—</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid #30363d; border-radius: 6px; padding: 10px; text-align: center;">
+              <strong style="color: #3fb950; font-size: 0.85rem; display: block; margin-bottom: 6px;">DenseNet121 (Grad-CAM)</strong>
+              <img id="compare-img-densenet" style="width: 100%; border-radius: 4px; aspect-ratio: 1; object-fit: cover; background: #000;" alt="DenseNet Grad-CAM">
+              <span id="compare-lbl-densenet" style="font-size: 0.78rem; color: #c9d1d9; display: block; margin-top: 6px;">—</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid #30363d; border-radius: 6px; padding: 10px; text-align: center;">
+              <strong style="color: #d29922; font-size: 0.85rem; display: block; margin-bottom: 6px;">CapsNet (Grad-CAM++)</strong>
+              <img id="compare-img-capsnet" style="width: 100%; border-radius: 4px; aspect-ratio: 1; object-fit: cover; background: #000;" alt="CapsNet Grad-CAM++">
+              <span id="compare-lbl-capsnet" style="font-size: 0.78rem; color: #c9d1d9; display: block; margin-top: 6px;">—</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid #30363d; border-radius: 6px; padding: 10px; text-align: center;">
+              <strong style="color: #bc8cff; font-size: 0.85rem; display: block; margin-bottom: 6px;">GAT (Region Graph)</strong>
+              <img id="compare-img-gat" style="width: 100%; border-radius: 4px; aspect-ratio: 1; object-fit: cover; background: #000;" alt="GAT Spatial Attention">
+              <span id="compare-lbl-gat" style="font-size: 0.78rem; color: #c9d1d9; display: block; margin-top: 6px;">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 3: OPEN-SET & ZERO-SHOT THORACIC DISCOVERY                    -->
+    <!-- ================================================================= -->
+    <section class="tab-panel" id="panel-openset">
+      <div class="xai-header-bar">
+        <div>
+          <h2>Open-Set & Zero-Shot Thoracic Pathology Discovery</h2>
+          <p>Evaluates radiographs against an expanded 28+ thoracic condition vocabulary using contrastive vision-language similarity and free energy OOD detection.</p>
+        </div>
+        <div>
+          <button class="primary-btn" id="openset-run-btn" style="padding: 8px 16px; font-size: 0.85rem;">
+            <span>🌐 Scan 28+ Thoracic Ontology</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="openset-empty-state" class="empty-display">
+        <div class="empty-icon">🌐</div>
+        <h3>Awaiting Open-Set Radiograph Scan</h3>
+        <p>Upload a chest radiograph in the <strong>Analysis Workspace</strong> and click <strong>Scan 28+ Thoracic Ontology</strong> to discover both known findings and expanded open-set pathologies.</p>
+      </div>
+
+      <div id="openset-results-container" class="results-container" hidden>
+        <!-- Free Energy & OOD Status Bar -->
+        <div class="results-meta-bar" style="margin-bottom: 20px;">
+          <div class="meta-item">
+            <small>FREE ENERGY SCORE</small>
+            <strong id="openset-energy-val" style="color: #58a6ff;">—</strong>
+          </div>
+          <div class="meta-item">
+            <small>DISTRIBUTION STATUS</small>
+            <strong id="openset-status-val" style="color: #3fb950;">In-Domain Radiograph</strong>
+          </div>
+          <div class="meta-item">
+            <small>ONTOLOGY BREADTH</small>
+            <strong style="color: #bc8cff;">28+ Conditions</strong>
+          </div>
+          <div class="meta-item">
+            <small>TOP CANDIDATE</small>
+            <strong id="openset-top-candidate" class="accent-text">—</strong>
+          </div>
+        </div>
+
+        <!-- Open-Set Candidates Grid -->
+        <div class="studio-card">
+          <div class="card-header">
+            <h3>Top-Ranked Thoracic Candidate Findings</h3>
+            <span style="font-size: 0.8rem; color: #8b949e;">Visual-textual contrastive similarity ranking</span>
+          </div>
+          <div id="openset-candidates-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 14px;">
+            <!-- Dynamically populated candidate cards -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 4: MEDICAL EVIDENCE & LITERATURE (PUBMED / NCBI)              -->
+    <!-- ================================================================= -->
+    <section class="tab-panel" id="panel-literature">
+      <div class="xai-header-bar">
+        <div>
+          <h2>Evidence-Grounded Medical Literature Retrieval (NCBI & PubMed)</h2>
+          <p>Verified peer-reviewed biomedical literature and diagnostic criteria, strictly separated from AI model visual classifications.</p>
+        </div>
+      </div>
+
+      <!-- Search Input Bar -->
+      <div class="studio-card" style="margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <input type="text" id="literature-search-input" class="studio-select" style="flex: 1 1 300px; padding: 10px 14px; font-size: 0.9rem;" placeholder="Search any thoracic finding (e.g. Cardiomegaly, Pneumoperitoneum, Fibrosis, Emphysema)...">
+          <button class="primary-btn" id="literature-search-btn" style="padding: 10px 20px; font-size: 0.9rem;">
+            <span>🔍 Search PubMed Literature</span>
+          </button>
+        </div>
+        <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <small style="color: #8b949e;">Quick lookups:</small>
+          <button type="button" class="action-btn-text lit-quick-btn" data-finding="Cardiomegaly" style="color: #58a6ff; font-size: 0.78rem; cursor: pointer; text-decoration: underline; background: none; border: none;">Cardiomegaly</button>
+          <button type="button" class="action-btn-text lit-quick-btn" data-finding="Pneumoperitoneum" style="color: #58a6ff; font-size: 0.78rem; cursor: pointer; text-decoration: underline; background: none; border: none;">Pneumoperitoneum</button>
+          <button type="button" class="action-btn-text lit-quick-btn" data-finding="Emphysema" style="color: #58a6ff; font-size: 0.78rem; cursor: pointer; text-decoration: underline; background: none; border: none;">Emphysema</button>
+          <button type="button" class="action-btn-text lit-quick-btn" data-finding="Pulmonary Fibrosis" style="color: #58a6ff; font-size: 0.78rem; cursor: pointer; text-decoration: underline; background: none; border: none;">Pulmonary Fibrosis</button>
+          <button type="button" class="action-btn-text lit-quick-btn" data-finding="Tuberculosis" style="color: #58a6ff; font-size: 0.78rem; cursor: pointer; text-decoration: underline; background: none; border: none;">Tuberculosis</button>
+          <button type="button" class="action-btn-text lit-quick-btn" data-finding="Hernia" style="color: #58a6ff; font-size: 0.78rem; cursor: pointer; text-decoration: underline; background: none; border: none;">Hernia</button>
+        </div>
+      </div>
+
+      <!-- Literature Evidence Display Card -->
+      <div id="literature-result-card" class="studio-card" style="margin-bottom: 20px;">
+        <div class="card-header">
+          <div>
+            <span class="card-kicker" id="lit-source-badge" style="color: #58a6ff;">NCBI BOOKSHELF / STATPEARLS</span>
+            <h3 id="lit-title-display">Cardiomegaly Imaging and Evaluation</h3>
+          </div>
+          <a id="lit-source-link" href="https://www.ncbi.nlm.nih.gov/books/NBK553140/" target="_blank" rel="noopener noreferrer" style="color: #58a6ff; font-size: 0.82rem; text-decoration: underline; font-weight: 500;">
+            Open NCBI Article ↗
+          </a>
+        </div>
+        <div style="padding: 12px 0;">
+          <p id="lit-evidence-text" style="font-size: 0.92rem; color: #c9d1d9; line-height: 1.6; margin-bottom: 14px;">
+            Cardiomegaly is recognized on posteroanterior (PA) chest radiographs when the cardiothoracic ratio (maximum transverse cardiac diameter divided by internal thoracic diameter) exceeds 0.50. On AP supine films, projection magnification may falsely elevate CTR up to 0.60.
+          </p>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; background: rgba(255,255,255,0.02); border: 1px solid #30363d; border-radius: 6px; padding: 12px;">
+            <div>
+              <small style="color: #8b949e; text-transform: uppercase; font-size: 0.72rem; display: block;">Anatomical Region</small>
+              <strong id="lit-region-display" style="color: #e6edf3; font-size: 0.85rem;">Cardiac Silhouette</strong>
+            </div>
+            <div>
+              <small style="color: #8b949e; text-transform: uppercase; font-size: 0.72rem; display: block;">Visual Diagnostic Concept</small>
+              <span id="lit-visual-display" style="color: #e6edf3; font-size: 0.85rem;">Cardiothoracic ratio (CTR) exceeding 0.50</span>
+            </div>
+            <div>
+              <small style="color: #8b949e; text-transform: uppercase; font-size: 0.72rem; display: block;">PubMed Research Query</small>
+              <a id="lit-pubmed-link" href="#" target="_blank" rel="noopener noreferrer" style="color: #3fb950; font-size: 0.85rem; text-decoration: underline;">Search PubMed Citations ↗</a>
+            </div>
+          </div>
+          <div style="margin-top: 14px; padding: 10px 14px; background: rgba(88, 166, 255, 0.05); border-left: 3px solid #58a6ff; border-radius: 4px;">
+            <small style="color: #8b949e; font-size: 0.75rem; line-height: 1.4; display: block;">
+              <strong>Safety Guardrail:</strong> Literature retrieved for informational/educational context only. Retrieval of a medical reference does NOT confirm or validate the presence of that disease in the uploaded radiograph.
+            </small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 5: EXPLAINABLE AI (XAI) DASHBOARD                             -->
     <!-- ================================================================= -->
     <section class="tab-panel" id="panel-xai">
       <div class="xai-header-bar">

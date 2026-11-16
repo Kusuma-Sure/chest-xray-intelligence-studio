@@ -187,8 +187,20 @@ class ImageGraphGAT(nn.Module):
         logits = self.classifier(self.dropout(graph_representation))
         return logits
 
+    def extract_features(self, x: torch.Tensor) -> torch.Tensor:
+        """Extracts 128-dim graph representation for open-set candidate projection."""
+        features = self.cnn(x)
+        nodes = features.flatten(2).transpose(1, 2)
+        nodes = self.projection(nodes)
+        nodes1, _ = self.gat1(nodes, self.adjacency)
+        nodes = self.norm1(nodes + nodes1)
+        nodes2, _ = self.gat2(nodes, self.adjacency)
+        nodes = self.norm2(nodes + nodes2)
+        return nodes.mean(dim=1)
+
     def get_region_importance(self) -> torch.Tensor | None:
         """Returns the [7, 7] region attention importance map from the last forward pass."""
         if self.last_node_importance is not None:
             return self.last_node_importance[0].detach()
         return None
+

@@ -20,8 +20,19 @@ matplotlib.use("Agg")
 import torch
 
 from .benchmark import get_benchmark_register
-from .config import CHECKPOINT_DIR, DATA_DIR, DEFAULT_THRESHOLD, FINDINGS, FRONTEND_DIR, MODEL_INFO
-from .graph_rag import retrieve_graph_context
+from .config import (
+    ADDITIONAL_THORACIC_FINDINGS,
+    ALL_THORACIC_FINDINGS,
+    CHECKPOINT_DIR,
+    COMPLETE_ANATOMY,
+    DATA_DIR,
+    DEFAULT_THRESHOLD,
+    FINDINGS,
+    FRONTEND_DIR,
+    MODEL_INFO,
+    OPEN_SET_CONFIG,
+)
+from .graph_rag import retrieve_graph_context, search_medical_evidence
 from .model_registry import DEVICE, get_model_status, list_all_models
 from .predictor import predictor
 
@@ -236,6 +247,81 @@ async def predict_endpoint(
     return primary_result
 
 
+@app.post("/api/compare")
+async def compare_models(
+    image: UploadFile = File(..., description="Uploaded chest X-ray image for 4-model comparison"),
+    threshold: Optional[float] = Query(None, description="Optional classification threshold"),
+):
+    """Executes all 4 deep learning models independently and returns comparative consensus."""
+    if not image:
+        raise HTTPException(status_code=400, detail="No image file provided.")
+
+    content_type = image.content_type or ""
+    if not (content_type.startswith("image/") or image.filename.lower().endswith((".jpg", ".jpeg", ".png", ".webp"))):
+        raise HTTPException(status_code=415, detail="Unsupported image format. Please upload JPG, PNG, or WEBP.")
+
+    raw_bytes = await image.read()
+    if not raw_bytes:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+    if len(raw_bytes) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 25 MB limit.")
+
+    try:
+        pil_img = Image.open(io.BytesIO(raw_bytes))
+        pil_img.load()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Corrupted or invalid image file.")
+
+    comparison = predictor.compare_all_models(pil_img, threshold=threshold)
+    comparison["filename"] = image.filename
+    comparison["file_size_kb"] = round(len(raw_bytes) / 1024, 1)
+    return comparison
+
+
+@app.post("/api/open-set-predict")
+async def open_set_predict(
+    image: UploadFile = File(..., description="Uploaded chest X-ray image for open-set candidate analysis"),
+    top_k: int = Query(6, ge=1, le=15, description="Number of candidate findings to rank"),
+):
+    """Evaluates radiograph against the expanded 28+ thoracic disease ontology using vision-language matching."""
+    if not image:
+        raise HTTPException(status_code=400, detail="No image file provided.")
+
+    raw_bytes = await image.read()
+    if not raw_bytes:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+    try:
+        pil_img = Image.open(io.BytesIO(raw_bytes))
+        pil_img.load()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Corrupted or invalid image file.")
+
+    result = predictor.predict_open_set(pil_img, top_k=top_k)
+    result["filename"] = image.filename
+    return result
+
+
+@app.get("/api/medical-evidence")
+def get_medical_evidence(finding: str = Query(..., description="Finding name to search in literature")):
+    """Retrieves verified medical citations and PubMed references for any thoracic finding."""
+    if not finding:
+        raise HTTPException(status_code=400, detail="Finding name query parameter is required.")
+    return search_medical_evidence(finding)
+
+
+@app.get("/api/ontology")
+def get_thoracic_ontology():
+    """Returns the complete 28+ thoracic condition ontology with anatomical categories."""
+    return {
+        "total_conditions": len(ALL_THORACIC_FINDINGS),
+        "chexpert_findings": FINDINGS,
+        "expanded_findings": ADDITIONAL_THORACIC_FINDINGS,
+        "anatomy_metadata": COMPLETE_ANATOMY,
+        "disclaimer": OPEN_SET_CONFIG["disclaimer"],
+    }
+
+
 @app.get("/api/docs-info")
 def docs_info():
     return {
@@ -244,5 +330,10 @@ def docs_info():
         "health": "/api/health",
         "models": "/api/models",
         "benchmarks": "/api/benchmarks",
+        "compare": "POST /api/compare",
+        "open_set": "POST /api/open-set-predict",
+        "medical_evidence": "GET /api/medical-evidence?finding={name}",
+        "ontology": "GET /api/ontology",
         "predict_example": "POST /api/predict?model=vit&threshold=0.50&explain=true",
     }
+

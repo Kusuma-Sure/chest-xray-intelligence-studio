@@ -17,12 +17,20 @@ import torch
 from PIL import Image
 
 from .architectures import forward_logits
-from .config import DEFAULT_THRESHOLD, FINDINGS, MODEL_INFO
+from .config import (
+    ALL_THORACIC_FINDINGS,
+    COMPLETE_ANATOMY,
+    DEFAULT_THRESHOLD,
+    FINDINGS,
+    MODEL_INFO,
+    OPEN_SET_CONFIG,
+)
 from .data import make_transform
 from .explainability import generate_visual_explanation
 from .graph_rag import retrieve_graph_context
 from .model_registry import DEVICE, get_model_status, load_trained_model
 from .ood_detector import ood_detector
+from .open_set import open_set_analyzer
 from .visualization import create_four_panel_grid
 
 
@@ -125,6 +133,25 @@ class MedicalPredictor:
             raise RuntimeError(f"Model forward pass failed: {exc}") from exc
 
         elapsed_ms = (time.perf_counter() - started_time) * 1000
+
+        # Step 4b: Extract Visual Embeddings for Open-Set Candidate Matching
+        visual_features = None
+        if hasattr(model, "extract_features"):
+            try:
+                with torch.no_grad():
+                    visual_features = model.extract_features(input_tensor)
+            except Exception:
+                visual_features = None
+
+        # Step 4c: Synthesize Primary Conclusion, Alternatives & Abstention
+        finding_probs_dict = {f: float(p) for f, p in zip(FINDINGS, probabilities)}
+        primary_synthesis = open_set_analyzer.synthesize_primary_conclusion(
+            model_name=MODEL_INFO[model_name]["name"],
+            finding_probabilities=finding_probs_dict,
+            recommended_threshold=MODEL_INFO[model_name].get("recommended_threshold", 0.40),
+            visual_features=visual_features,
+            ood_status=ood_result,
+        )
 
         # Step 5: Format 13 Finding Scores
         findings_rows = []
@@ -245,6 +272,17 @@ class MedicalPredictor:
             "is_ood": False,
             "model_id": model_name,
             "model_name": MODEL_INFO[model_name]["name"],
+            "status": primary_synthesis["status"],
+            "should_abstain": primary_synthesis["should_abstain"],
+            "abstention_reason": primary_synthesis["abstention_reason"],
+            "primary_finding": primary_synthesis["primary_finding"],
+            "primary_confidence": primary_synthesis["primary_confidence"],
+            "primary_conclusion": primary_synthesis["primary_conclusion"],
+            "clinical_narrative": primary_synthesis["clinical_narrative"],
+            "alternatives": primary_synthesis["alternatives"],
+            "open_set_candidates": primary_synthesis["open_set_candidates"],
+            "free_energy": primary_synthesis["free_energy"],
+            "predictive_entropy": primary_synthesis["predictive_entropy"],
             "threshold": float(threshold),
             "recommended_threshold": float(arch_meta.get("recommended_threshold", 0.50)),
             "processing_time_ms": round(elapsed_ms, 2),
@@ -268,6 +306,232 @@ class MedicalPredictor:
             "disclaimer": (
                 "Academic Research Prototype: Predictions and attribution maps are probabilistic "
                 "deep learning outputs for educational and scientific inquiry. Not approved as a medical device."
+            ),
+        }
+
+    def compare_all_models(
+        self,
+        image: Image.Image,
+        threshold: float | None = None,
+    ) -> dict[str, Any]:
+        """Executes all 4 deep-learning models completely independently on the same radiograph.
+        
+        Strict independence:
+        1. Each model runs its own forward pass and calibration.
+        2. Measures independent latency per model.
+        3. Identifies individual primary conclusion and alternatives.
+        4. Calculates empirical consensus / disagreement without forcing agreement.
+        """
+        started = time.perf_counter()
+
+        # OOD check first
+        ood_result = ood_detector.analyze_image(image)
+        if not ood_result["is_valid_cxr"]:
+            return {
+                "success": False,
+                "is_ood": True,
+                "ood_details": ood_result,
+                "rejection_reason": ood_result["rejection_reason"],
+                "user_message": ood_result["user_message"],
+                "models": [],
+                "consensus": {
+                    "level": "rejected",
+                    "title": "Input Rejected by Out-of-Distribution Filter",
+                    "badge": "🔴 Input Out-of-Distribution",
+                    "agreement_count": 0,
+                    "dominant_finding": None,
+                    "description": ood_result["user_message"],
+                },
+                "discrepancies": [],
+                "disclaimer": "No disease predictions were generated for non-verified or out-of-distribution input.",
+            }
+
+        model_ids = ["vit", "densenet", "capsnet", "gat"]
+        model_results = []
+        primary_findings = []
+
+        for mid in model_ids:
+            try:
+                res = self.predict_single_image(
+                    image=image,
+                    model_name=mid,
+                    threshold=threshold,
+                    explain=True,
+                )
+                if res.get("success"):
+                    model_results.append({
+                        "model_id": mid,
+                        "model_name": res["model_name"],
+                        "status": res["status"],
+                        "primary_finding": res["primary_finding"] or "Abstained",
+                        "primary_confidence": res["primary_confidence"],
+                        "primary_conclusion": res["primary_conclusion"],
+                        "clinical_narrative": res["clinical_narrative"],
+                        "should_abstain": res["should_abstain"],
+                        "abstention_reason": res.get("abstention_reason"),
+                        "recommended_threshold": res["recommended_threshold"],
+                        "alternatives": res["alternatives"][:3],
+                        "free_energy": res["free_energy"],
+                        "processing_time_ms": res["processing_time_ms"],
+                        "annotated_image": res.get("annotated_image", ""),
+                        "psnr": res.get("psnr", {}),
+                        "panels": res.get("explanation", {}).get("panels", {}),
+                    })
+                    if not res["should_abstain"] and res["primary_finding"]:
+                        primary_findings.append(res["primary_finding"])
+                else:
+                    model_results.append({
+                        "model_id": mid,
+                        "model_name": MODEL_INFO[mid]["name"],
+                        "status": "unavailable",
+                        "primary_finding": "Unavailable",
+                        "primary_confidence": 0.0,
+                        "primary_conclusion": "Checkpoint unavailable",
+                        "clinical_narrative": res.get("user_message", "Model unavailable"),
+                        "should_abstain": True,
+                        "abstention_reason": "Checkpoint unavailable",
+                        "recommended_threshold": MODEL_INFO[mid].get("recommended_threshold", 0.40),
+                        "alternatives": [],
+                        "free_energy": 0.0,
+                        "processing_time_ms": res.get("processing_time_ms", 0.0),
+                        "annotated_image": "",
+                        "psnr": {},
+                        "panels": {},
+                    })
+            except Exception as e:
+                model_results.append({
+                    "model_id": mid,
+                    "model_name": MODEL_INFO.get(mid, {}).get("name", mid),
+                    "status": "error",
+                    "primary_finding": "Error",
+                    "primary_confidence": 0.0,
+                    "primary_conclusion": f"Error: {e}",
+                    "clinical_narrative": str(e),
+                    "should_abstain": True,
+                    "abstention_reason": str(e),
+                    "recommended_threshold": 0.40,
+                    "alternatives": [],
+                    "free_energy": 0.0,
+                    "processing_time_ms": 0.0,
+                    "annotated_image": "",
+                    "psnr": {},
+                    "panels": {},
+                })
+
+        # Consensus Analysis
+        from collections import Counter
+        counts = Counter(primary_findings)
+        discrepancies = []
+
+        if not primary_findings:
+            consensus_level = "all_abstained"
+            consensus_title = "All Models Abstained — Uncertain / Ambiguous Scan"
+            consensus_badge = "⚪ Low Diagnostic Confidence / Abstained"
+            consensus_desc = "No architecture detected a finding meeting its calibrated diagnostic threshold. Expert radiologist review is required."
+            agreement_count = 0
+            dominant_finding = None
+        else:
+            dominant_finding, top_count = counts.most_common(1)[0]
+            agreement_count = top_count
+            
+            if top_count == 4:
+                consensus_level = "unanimous"
+                consensus_title = f"Unanimous Agreement (4/4 Models): {dominant_finding}"
+                consensus_badge = "🟢 Unanimous Agreement (4/4)"
+                consensus_desc = f"All four architectures independently identified {dominant_finding} as the primary diagnostic finding."
+            elif top_count == 3:
+                consensus_level = "strong"
+                consensus_title = f"Strong Majority Consensus (3/4 Models): {dominant_finding}"
+                consensus_badge = "🟢 Strong Majority (3/4)"
+                consensus_desc = f"Three models agree on {dominant_finding}. One model offered an alternative or abstained."
+            elif top_count == 2 and len(counts) == 1:
+                consensus_level = "majority"
+                consensus_title = f"Consensus (2/2 Confident Models): {dominant_finding}"
+                consensus_badge = "🟡 Moderate Consensus"
+                consensus_desc = f"Both confident models concurred on {dominant_finding}."
+            elif top_count == 2 and len(counts) > 1:
+                consensus_level = "split"
+                consensus_title = f"Split Consensus (2/4 Models Support {dominant_finding})"
+                consensus_badge = "🟡 Split Diagnostic Opinion"
+                consensus_desc = f"Partial agreement on {dominant_finding}, with dissenting predictions from other models."
+            else:
+                consensus_level = "disagreement"
+                consensus_title = "Explicit Disagreement: Split Diagnostic Support"
+                consensus_badge = "🔴 Multi-Model Discrepancy"
+                consensus_desc = "Models differ on primary pathology. Diagnostic divergence highlighted below for clinical review."
+
+            # Record model discrepancies
+            for m in model_results:
+                if m["status"] == "confirmed" and m["primary_finding"] != dominant_finding:
+                    discrepancies.append({
+                        "model_name": m["model_name"],
+                        "dissenting_finding": m["primary_finding"],
+                        "confidence": m["primary_confidence"],
+                        "reason": f"Favored {m['primary_finding']} ({m['primary_confidence']*100:.1f}%) over {dominant_finding}.",
+                    })
+
+        total_elapsed_ms = (time.perf_counter() - started) * 1000
+
+        return {
+            "success": True,
+            "is_ood": False,
+            "total_elapsed_ms": round(total_elapsed_ms, 2),
+            "models": model_results,
+            "consensus": {
+                "level": consensus_level,
+                "title": consensus_title,
+                "badge": consensus_badge,
+                "agreement_count": agreement_count,
+                "dominant_finding": dominant_finding,
+                "description": consensus_desc,
+            },
+            "discrepancies": discrepancies,
+            "disclaimer": (
+                "Four-Model Comparison Prototype: Each model operates independently without shared state. "
+                "Disagreement between architectures indicates radiographic ambiguity and necessitates radiologist verification."
+            ),
+        }
+
+    def predict_open_set(
+        self,
+        image: Image.Image,
+        top_k: int = 6,
+    ) -> dict[str, Any]:
+        """Evaluates image against 28+ thoracic disease ontology using vision-language matching."""
+        started = time.perf_counter()
+        ood_result = ood_detector.analyze_image(image)
+        if not ood_result["is_valid_cxr"]:
+            return {
+                "success": False,
+                "is_ood": True,
+                "rejection_reason": ood_result["rejection_reason"],
+                "candidates": [],
+                "user_message": ood_result["user_message"],
+            }
+
+        # Use ViT feature extraction for open-set projection
+        model = load_trained_model("vit")
+        transform = make_transform("vit", train=False)
+        input_tensor = transform(image.convert("RGB")).unsqueeze(0).to(self.device)
+
+        with torch.no_grad():
+            features = model.extract_features(input_tensor)
+            logits = forward_logits(model, input_tensor)
+            free_energy = open_set_analyzer.compute_free_energy(logits)
+
+        candidates = open_set_analyzer.project_visual_to_anchors(features, top_k=top_k)
+        elapsed_ms = (time.perf_counter() - started) * 1000
+
+        return {
+            "success": True,
+            "is_ood": False,
+            "processing_time_ms": round(elapsed_ms, 2),
+            "free_energy": round(free_energy, 4),
+            "candidates": candidates,
+            "disclaimer": (
+                "Open-Set Vision-Language Candidate Analysis: Evaluates contrastive similarity "
+                "against an expanded vocabulary of 28+ thoracic findings. Candidates indicate "
+                "radiological suspicion and must be reviewed by a qualified specialist."
             ),
         }
 
@@ -296,3 +560,4 @@ class MedicalPredictor:
 
 # Global predictor instance
 predictor = MedicalPredictor()
+

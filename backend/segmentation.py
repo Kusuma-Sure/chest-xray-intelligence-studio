@@ -139,6 +139,9 @@ def segment_chest_anatomy(image: Image.Image) -> dict:
         "cardiac_mask": cardiac_mask,
         "perihilar_mask": perihilar_mask,
         "semantic_overlay": semantic_overlay,
+        "is_heuristic": True,
+        "method": "Morphological CLAHE & Connected-Component Approximation",
+        "disclaimer": "Experimental Anatomical Approximation (Heuristic) — Not a clinically validated segmentation network.",
     }
 
 

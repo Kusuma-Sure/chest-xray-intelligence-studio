@@ -169,6 +169,16 @@ class CapsNet(nn.Module):
         return logits
 
 
+    def extract_features(self, x: torch.Tensor) -> torch.Tensor:
+        """Extracts deep visual features for open-set candidate projection."""
+        if x.size(1) == 1:
+            x = x.repeat(1, 3, 1, 1)
+        c1 = self.conv1(x)
+        c2 = self.conv2(c1)
+        c3 = self.conv3(c2)
+        return F.adaptive_avg_pool2d(c3, (1, 1)).flatten(1)
+
+
 # ==============================================================================
 # 2. DENSENET121 ARCHITECTURE
 # ==============================================================================
@@ -192,6 +202,13 @@ class CheXpertDenseNet121(nn.Module):
         out = torch.flatten(out, 1)
         logits = self.classifier(out)
         return logits
+
+    def extract_features(self, x: torch.Tensor) -> torch.Tensor:
+        """Extracts pooled 1024-dim visual features for open-set candidate projection."""
+        features = self.features(x)
+        out = F.relu(features, inplace=True)
+        out = F.adaptive_avg_pool2d(out, (1, 1))
+        return torch.flatten(out, 1)
 
 
 # ==============================================================================
@@ -266,6 +283,24 @@ class CheXpertViT(nn.Module):
             if output_attentions:
                 return logits, None
             return logits
+
+    def extract_features(self, x: torch.Tensor) -> torch.Tensor:
+        """Extracts 768-dim visual embedding (CLS token) for open-set candidate projection."""
+        if self._backend_type == "huggingface":
+            outputs = self.vit_model.vit(pixel_values=x)
+            return outputs.last_hidden_state[:, 0]
+        else:
+            # TorchVision ViT
+            n, c, h, w = x.shape
+            p = self.vit_model.patch_size
+            n_h = h // p
+            n_w = w // p
+            x_proc = self.vit_model._process_input(x)
+            n_tokens = x_proc.shape[1]
+            batch_class_token = self.vit_model.class_token.expand(n, -1, -1)
+            x_tokens = torch.cat([batch_class_token, x_proc], dim=1)
+            x_tokens = self.vit_model.encoder(x_tokens)
+            return x_tokens[:, 0]
 
     @property
     def embeddings(self):

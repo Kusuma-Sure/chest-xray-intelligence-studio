@@ -141,5 +141,171 @@
     "evidence_text": "Chest radiography is essential for verifying proper anatomical positioning of invasive thoracic hardware, including endotracheal tubes (tip 3-5 cm above the carina), central venous catheters (tip at the cavoatrial junction), nasogastric tubes (tip subdiaphragmatic in stomach), chest tubes, and cardiac pacemakers.",
     "anatomical_region": "Thorax (Invasive / Monitoring Hardware)",
     "visual_concept": "Radio-opaque tubing, catheters, pacing leads, or monitoring electrodes."
+  },
+  {
+    "finding": "Emphysema",
+    "source_id": "NCBI_Emphysema_2025",
+    "title": "Chronic Obstructive Pulmonary Disease and Emphysema",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK482177/",
+    "evidence_text": "Classic radiographic signs of pulmonary emphysema include lung hyperinflation, flattened diaphragmatic domes (visualized on both frontal and lateral views), increased retrosternal airspace (>2.5 cm), attenuated peripheral vasculature ('vascular deficiency'), and occasional bullae.",
+    "anatomical_region": "Lung Parenchyma / Airspaces",
+    "visual_concept": "Bilateral lung hyperlucency, low flattened diaphragms, and attenuated vascular caliber."
+  },
+  {
+    "finding": "Pulmonary Fibrosis",
+    "source_id": "NCBI_Pulmonary_Fibrosis_2025",
+    "title": "Idiopathic Pulmonary Fibrosis Imaging Evaluation",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK554386/",
+    "evidence_text": "Radiographic manifestations of pulmonary fibrosis feature bilateral basilar-predominant reticular opacities, traction bronchiectasis, peripheral honeycombing, and progressive loss of lung volume with architectural distortion.",
+    "anatomical_region": "Pulmonary Interstitium",
+    "visual_concept": "Basilar reticular markings, volume loss, and subpleural honeycombing."
+  },
+  {
+    "finding": "Lung Nodule",
+    "source_id": "NCBI_Solitary_Nodule_2025",
+    "title": "Solitary Pulmonary Nodule Imaging Guidelines",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK556101/",
+    "evidence_text": "A solitary pulmonary nodule is defined as an intraparenchymal rounded or oval opacity measuring up to 30 mm in diameter, surrounded by aerated lung without associated atelectasis, adenopathy, or pleural effusion.",
+    "anatomical_region": "Lung Parenchyma",
+    "visual_concept": "Circumscribed spherical opacity measuring <=30 mm."
+  },
+  {
+    "finding": "Lung Mass",
+    "source_id": "NCBI_Pulmonary_Mass_2025",
+    "title": "Evaluation of Pulmonary Masses on Chest Radiography",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK556101/",
+    "evidence_text": "A pulmonary mass is defined as any focal thoracic opacity measuring strictly greater than 30 mm in diameter. Given the high probability of malignancy, urgent diagnostic cross-sectional CT and biopsy evaluation are warranted.",
+    "anatomical_region": "Lung Parenchyma / Hilum",
+    "visual_concept": "Focal soft-tissue density opacity measuring strictly >30 mm."
+  },
+  {
+    "finding": "Pleural Thickening",
+    "source_id": "NCBI_Pleural_Thickening_2025",
+    "title": "Pleural Disease and Fibrothorax",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK557682/",
+    "evidence_text": "Diffuse pleural thickening appears as a continuous, smooth or nodular layer of soft tissue along the lateral thoracic wall exceeding 3 mm in thickness, often extending across multiple intercostal spaces and blunting costophrenic angles.",
+    "anatomical_region": "Pleural Membranes",
+    "visual_concept": "Continuous soft-tissue pleural mantle along the rib cage."
+  },
+  {
+    "finding": "Calcification",
+    "source_id": "NCBI_Thoracic_Calcification_2025",
+    "title": "Thoracic Calcifications: Benign versus Pathologic Patterns",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK549883/",
+    "evidence_text": "Pulmonary calcifications appear as dense, radio-opaque mineralized deposits. Concentric, central, or popcorn calcifications in nodules indicate benign granulomatous or hamartomatous etiology, whereas eccentric or punctate calcifications may indicate neoplasm.",
+    "anatomical_region": "Thorax (Parenchymal / Vascular / Nodal)",
+    "visual_concept": "High-attenuation dense mineralized radio-opaque deposits."
+  },
+  {
+    "finding": "Hernia",
+    "source_id": "NCBI_Diaphragmatic_Hernia_2025",
+    "title": "Hiatal and Diaphragmatic Hernias on Chest Radiography",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK562200/",
+    "evidence_text": "Diaphragmatic and hiatal hernias present on chest radiography as retrocardiac masses containing gas bubbles or an air-fluid level, representing intrathoracic displacement of the stomach or bowel through the esophageal hiatus or congenital defects.",
+    "anatomical_region": "Diaphragm / Mediastinum",
+    "visual_concept": "Retrocardiac air-fluid level or mass projecting above the diaphragm."
+  },
+  {
+    "finding": "Pneumoperitoneum",
+    "source_id": "NCBI_Pneumoperitoneum_2025",
+    "title": "Pneumoperitoneum Detection on Erect Chest Radiography",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK546680/",
+    "evidence_text": "Erect frontal chest radiography is the most sensitive plain film for detecting free intra-abdominal air (subdiaphragmatic crescentic lucency), identifying as little as 1-2 mL of free gas under the right hemidiaphragm dome. Highly indicative of visceral perforation.",
+    "anatomical_region": "Subdiaphragmatic Space",
+    "visual_concept": "Free crescentic gas under the right or left hemidiaphragm."
+  },
+  {
+    "finding": "Scoliosis",
+    "source_id": "NCBI_Thoracic_Scoliosis_2025",
+    "title": "Scoliosis Evaluation and Thoracic Cavity Deformity",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK470557/",
+    "evidence_text": "Scoliosis is defined as a lateral spinal curvature with a Cobb angle exceeding 10 degrees on upright radiograph. Severe thoracic curvature causes asymmetry of the hemithoraces, rib crowding, and rotational displacement of the mediastinum.",
+    "anatomical_region": "Thoracic Skeletal Cage",
+    "visual_concept": "Lateral spinal curvature exceeding 10 degrees with rib rotational deformity."
+  },
+  {
+    "finding": "Tuberculosis",
+    "source_id": "NCBI_Pulmonary_Tuberculosis_2025",
+    "title": "Radiological Patterns of Pulmonary Tuberculosis",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK441916/",
+    "evidence_text": "Reactivation pulmonary tuberculosis predominantly involves apical and posterior segments of the upper lobes, showing patchy consolidation, thick-walled cavitations, endobronchial spread (tree-in-bud nodularity), and apical pleural scarring.",
+    "anatomical_region": "Lung Parenchyma / Pleura",
+    "visual_concept": "Apical fibro-cavitary consolidation and endobronchial nodularity."
+  },
+  {
+    "finding": "Bronchiectasis",
+    "source_id": "NCBI_Bronchiectasis_2025",
+    "title": "Radiologic Diagnosis of Bronchiectasis",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK430810/",
+    "evidence_text": "Chest radiograph signs of bronchiectasis include parallel linear densities ('tram-track lines' representing thickened bronchial walls), ring shadows with or without air-fluid levels (dilated cystic bronchi), and localized atelectasis.",
+    "anatomical_region": "Bronchial Tree",
+    "visual_concept": "Tram-track parallel bronchial lines and cystic ring shadows."
+  },
+  {
+    "finding": "Subcutaneous Emphysema",
+    "source_id": "NCBI_Subcutaneous_Emphysema_2025",
+    "title": "Subcutaneous Thoracic Emphysema Clinical Presentation",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK542192/",
+    "evidence_text": "Subcutaneous emphysema appears on chest radiographs as striated, comb-like lucencies outlining muscle bundles along the lateral chest wall, pectoralis major muscle ('gingko leaf sign'), and neck soft tissues.",
+    "anatomical_region": "Thoracic Soft Tissues",
+    "visual_concept": "Comb-like gas lucencies outlining muscle bundles and soft tissues."
+  },
+  {
+    "finding": "Rib Fracture",
+    "source_id": "NCBI_Rib_Fracture_2025",
+    "title": "Rib Fractures and Thoracic Trauma",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK541097/",
+    "evidence_text": "Acute rib fractures present as sharp cortical disruptions, radiolucent fracture lines, or offset fragment step-offs along the posterior, lateral, or anterior rib arcs, frequently accompanied by localized pleural thickening or pneumothorax.",
+    "anatomical_region": "Thoracic Skeletal Cage",
+    "visual_concept": "Sharp cortical step-off or radiolucent line crossing rib cortex."
+  },
+  {
+    "finding": "Foreign Body",
+    "source_id": "NCBI_Thoracic_Foreign_Body_2025",
+    "title": "Tracheobronchial Foreign Body Aspiration and Ingestion",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK538208/",
+    "evidence_text": "Radio-opaque foreign bodies (coins, hardware, pins, dental prostheses) are directly visible on chest radiographs. Radiolucent foreign bodies are inferred by indirect secondary signs: obstructive atelectasis, focal air-trapping, or mediastinal shift.",
+    "anatomical_region": "Tracheobronchial Tree / Thorax",
+    "visual_concept": "Radio-opaque exogenous object or localized unilateral hyperinflation."
+  },
+  {
+    "finding": "Normal / Unremarkable Findings",
+    "source_id": "NCBI_Normal_CXR_2025",
+    "title": "Normal Chest Radiograph Interpretation Standards",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK621651/",
+    "evidence_text": "A standard normal frontal chest radiograph demonstrates well-aerated bilateral lung fields without focal consolidation or mass, normal cardiothoracic ratio (<0.50), sharp costophrenic angles, normal mediastinal width, and intact skeletal cage contours.",
+    "anatomical_region": "Entire Thorax",
+    "visual_concept": "Clear bilateral parenchyma, sharp angles, normal cardiothoracic ratio."
   }
 ]
+
