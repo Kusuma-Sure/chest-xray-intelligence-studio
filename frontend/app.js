@@ -183,6 +183,33 @@ dropzone.addEventListener('drop', (e) => {
   handleFilesAdded(e.dataTransfer.files);
 });
 
+// Clipboard paste handler: allows user to press Ctrl+V to paste radiographs directly
+window.addEventListener('paste', (e) => {
+  const clipboardData = e.clipboardData || window.clipboardData;
+  if (!clipboardData) return;
+  const items = clipboardData.items;
+  if (!items) return;
+
+  const files = [];
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type && items[i].type.indexOf('image') !== -1) {
+      const file = items[i].getAsFile();
+      if (file) {
+        const ext = file.type === 'image/jpeg' ? 'jpg' : (file.type === 'image/webp' ? 'webp' : 'png');
+        const namedFile = new File([file], `pasted_radiograph_${Date.now()}.${ext}`, { type: file.type || 'image/png' });
+        files.push(namedFile);
+      }
+    }
+  }
+
+  if (files.length > 0) {
+    e.preventDefault();
+    handleFilesAdded(files);
+    showToast(`📋 Pasted ${files.length} radiograph(s) from clipboard! Ready to analyze.`);
+    switchTab('analysis');
+  }
+});
+
 // ==============================================================================
 // 4. MODEL SELECTION & STATUS (CRITICAL BUG FIX)
 // ==============================================================================

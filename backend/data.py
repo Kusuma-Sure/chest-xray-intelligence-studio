@@ -12,7 +12,7 @@ from typing import Optional
 import re
 import numpy as np
 import pandas as pd
-from PIL import Image
+from PIL import Image, ImageOps
 import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
@@ -64,6 +64,31 @@ def resolve_image_path(raw_path: str, data_root: Path) -> Path:
     raise FileNotFoundError(f"CheXpert image path not found: {raw_path} (relative to {data_root})")
 
 
+class LetterboxResize:
+    """Resizes an image preserving aspect ratio with symmetric zero-padding.
+    
+    Prevents geometric distortion of thoracic anatomy when non-square 
+    radiographs (e.g. web images with aspect ratio != 1.0) are processed.
+    """
+    def __init__(self, target_size: int = IMAGE_SIZE):
+        self.target_size = target_size
+
+    def __call__(self, img: Image.Image) -> Image.Image:
+        w, h = img.size
+        if w == self.target_size and h == self.target_size:
+            return img
+        scale = self.target_size / max(w, h)
+        nw, nh = max(1, int(round(w * scale))), max(1, int(round(h * scale)))
+        resized = img.resize((nw, nh), Image.Resampling.BILINEAR)
+        pad_w = self.target_size - nw
+        pad_h = self.target_size - nh
+        pad_left = pad_w // 2
+        pad_top = pad_h // 2
+        pad_right = pad_w - pad_left
+        pad_bottom = pad_h - pad_top
+        return ImageOps.expand(resized, (pad_left, pad_top, pad_right, pad_bottom), fill=0)
+
+
 def make_transform(model_name: str, train: bool = False):
     """Constructs model-specific torchvision transforms."""
     model_name = model_name.lower().strip()
@@ -71,7 +96,7 @@ def make_transform(model_name: str, train: bool = False):
         # CapsNet operates on grayscale 1-channel inputs normalized to [0, 1]
         ops = [
             transforms.Grayscale(num_output_channels=1),
-            transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+            LetterboxResize(IMAGE_SIZE),
         ]
         if train:
             ops += [transforms.RandomRotation(5), transforms.RandomHorizontalFlip(0.2)]
@@ -80,7 +105,7 @@ def make_transform(model_name: str, train: bool = False):
         # ViT, DenseNet, and GAT use 3-channel RGB with standard normalization
         ops = [
             transforms.Grayscale(num_output_channels=3),
-            transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+            LetterboxResize(IMAGE_SIZE),
         ]
         if train:
             ops += [transforms.RandomRotation(5), transforms.RandomHorizontalFlip(0.2)]
