@@ -8,7 +8,7 @@ client = TestClient(app)
 def test_home_page_serves_html():
     res = client.get("/")
     assert res.status_code == 200
-    assert "Chest X-ray Intelligence Studio" in res.text
+    assert "Chest X-ray Intelligence" in res.text
 
 
 def test_api_health_endpoint():

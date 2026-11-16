@@ -1,5 +1,5 @@
-# Chest X-ray Intelligence Studio
-## Advanced Multi-Model Medical Image Classification, Explainable AI, and Evidence-Grounded GraphRAG
+# Chest X-ray Intelligence
+## AI-Based Medical Image Classification
 
 [![Python 3.10 | 3.11](https://img.shields.io/badge/Python-3.10%20%7C%203.11-blue.svg)](https://www.python.org/)
 [![PyTorch 2.9](https://img.shields.io/badge/PyTorch-2.9-ee4c2c.svg)](https://pytorch.org/)
@@ -12,7 +12,7 @@ A local, high-performance research platform for multi-label chest radiograph cla
 
 ## 1. Project Overview & Key Innovations
 
-- **Application Title**: Chest X-ray Intelligence Studio
+- **Application Title**: Chest X-ray Intelligence
 - **Domain**: Medical Image Analysis — Frontal Chest Radiography (AP and PA projections)
 - **Dataset Integration**: CheXpert-v1.0-small (automated download via KaggleHub)
 - **Primary Architecture**: Vision Transformer (ViT-B/16) initialized from Hugging Face `google/vit-base-patch16-224`

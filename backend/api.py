@@ -37,9 +37,9 @@ from .model_registry import DEVICE, get_model_status, list_all_models
 from .predictor import predictor
 
 app = FastAPI(
-    title="Chest X-ray Intelligence Studio API",
+    title="Chest X-ray Intelligence API",
     version="2.0.0",
-    description="Evidence-Grounded Medical Image Classification and Explainable Deep Learning Platform.",
+    description="AI-Based Medical Image Classification and Explainable Deep Learning Platform.",
 )
 
 app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
@@ -325,7 +325,7 @@ def get_thoracic_ontology():
 @app.get("/api/docs-info")
 def docs_info():
     return {
-        "title": "Chest X-ray Intelligence Studio API",
+        "title": "Chest X-ray Intelligence API",
         "documentation": "/docs",
         "health": "/api/health",
         "models": "/api/models",
