@@ -15,6 +15,8 @@ from PIL import Image, UnidentifiedImageError
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+import matplotlib
+matplotlib.use("Agg")
 import torch
 
 from .benchmark import get_benchmark_register

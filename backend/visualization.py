@@ -14,6 +14,8 @@ from __future__ import annotations
 import base64
 import io
 import cv2
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image

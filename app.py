@@ -1,6 +1,8 @@
 """Convenience entry point. Starts the Chest X-ray Intelligence Studio web application."""
 import argparse
 import os
+import matplotlib
+matplotlib.use("Agg")  # Non-interactive headless backend for multi-threaded FastAPI
 import uvicorn
 
 if __name__ == '__main__':
