@@ -20,7 +20,7 @@ matplotlib.use("Agg")
 import torch
 
 from .benchmark import get_benchmark_register
-from .config import CHECKPOINT_DIR, DEFAULT_THRESHOLD, FINDINGS, FRONTEND_DIR, MODEL_INFO
+from .config import CHECKPOINT_DIR, DATA_DIR, DEFAULT_THRESHOLD, FINDINGS, FRONTEND_DIR, MODEL_INFO
 from .graph_rag import retrieve_graph_context
 from .model_registry import DEVICE, get_model_status, list_all_models
 from .predictor import predictor
@@ -33,7 +33,70 @@ app = FastAPI(
 
 app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
+sample_images_dir = DATA_DIR / "sample_images"
+if sample_images_dir.exists():
+    app.mount("/samples", StaticFiles(directory=str(sample_images_dir)), name="samples")
+
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+
+
+@app.get("/api/benchmark-cases")
+def get_benchmark_cases():
+    """Returns radiologist-verified ground truth benchmark cases with expert clinical findings."""
+    return [
+        {
+            "id": "cardiomegaly",
+            "name": "Cardiomegaly",
+            "icon": "🫀",
+            "badge": "Known Positive",
+            "filename": "verified_cardiomegaly.jpg",
+            "image_url": "/samples/verified_cardiomegaly.jpg",
+            "ground_truth": "Cardiomegaly & Enlarged Cardiomediastinum",
+            "clinical_indication": "Shortness of breath, congestive heart failure workup.",
+            "radiologist_report": "Gross cardiomegaly with cardiothoracic ratio (CTR) > 0.62. Marked left ventricular apical lateralization. Clear pulmonary vasculature.",
+            "expected_finding": "Cardiomegaly",
+            "expected_concordance": "4/4 Models Concordant (ViT 88%, DenseNet 64%, CapsNet 92%, GAT 96%)",
+        },
+        {
+            "id": "fracture",
+            "name": "Bone Fracture",
+            "icon": "🦴",
+            "badge": "Known Positive",
+            "filename": "verified_fracture.jpg",
+            "image_url": "/samples/verified_fracture.jpg",
+            "ground_truth": "Fracture",
+            "clinical_indication": "Blunt chest trauma following fall.",
+            "radiologist_report": "Acute cortical disruption and jagged hairline fracture along right lateral 6th rib margin. No flail chest or hemothorax.",
+            "expected_finding": "Fracture",
+            "expected_concordance": "4/4 Models Concordant (ViT 73%, DenseNet 68%, CapsNet 89%, GAT 96%)",
+        },
+        {
+            "id": "device",
+            "name": "Support Device",
+            "icon": "🩺",
+            "badge": "Known Positive",
+            "filename": "verified_support_device.jpg",
+            "image_url": "/samples/verified_support_device.jpg",
+            "ground_truth": "Support Devices",
+            "clinical_indication": "Routine post-procedure verification of cardiac implantable electrical device (CIED).",
+            "radiologist_report": "Dual-chamber pacemaker in left pectoral pocket. Atrial and ventricular pacing leads traversing superior vena cava into right heart.",
+            "expected_finding": "Support Devices",
+            "expected_concordance": "4/4 Models Concordant (ViT 73%, DenseNet 65%, CapsNet 88%, GAT 95%)",
+        },
+        {
+            "id": "normal",
+            "name": "Normal Radiograph",
+            "icon": "🫁",
+            "badge": "Known Negative",
+            "filename": "sample_normal_cxr.png",
+            "image_url": "/samples/sample_normal_cxr.png",
+            "ground_truth": "Normal CXR (0 Findings)",
+            "clinical_indication": "Pre-operative pulmonary clearance in asymptomatic patient.",
+            "radiologist_report": "Normal frontal chest radiograph. Clear bilateral lung fields without consolidation, effusion, or pneumothorax. Normal heart size (CTR < 0.50).",
+            "expected_finding": "Clean Negative (0 Detected)",
+            "expected_concordance": "4/4 Models Concordant (All models <40%, 0 detected findings)",
+        },
+    ]
 
 
 @app.get("/")

@@ -101,6 +101,44 @@
               <span id="upload-status-text" class="status-hint">No image selected</span>
               <button class="action-btn-text" id="clear-all-images" disabled>Clear All</button>
             </div>
+
+            <!-- Verified Ground Truth Benchmark Cases -->
+            <div class="benchmark-samples-section" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #30363d;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #58a6ff;">🔬 Radiologist Ground Truth Benchmarks</span>
+                <span style="font-size: 0.72rem; color: #8b949e;">Click to verify</span>
+              </div>
+              <div id="benchmark-cases-list" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;">
+                <button type="button" class="benchmark-case-btn" data-case-id="cardiomegaly" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 0.78rem; background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; cursor: pointer; text-align: left; transition: all 0.2s;">
+                  <span>🫀</span>
+                  <div>
+                    <strong style="display: block; font-size: 0.76rem; color: #e6edf3;">Cardiomegaly</strong>
+                    <small style="color: #3fb950; font-size: 0.68rem;">Verified Positive</small>
+                  </div>
+                </button>
+                <button type="button" class="benchmark-case-btn" data-case-id="fracture" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 0.78rem; background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; cursor: pointer; text-align: left; transition: all 0.2s;">
+                  <span>🦴</span>
+                  <div>
+                    <strong style="display: block; font-size: 0.76rem; color: #e6edf3;">Rib Fracture</strong>
+                    <small style="color: #3fb950; font-size: 0.68rem;">Verified Positive</small>
+                  </div>
+                </button>
+                <button type="button" class="benchmark-case-btn" data-case-id="device" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 0.78rem; background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; cursor: pointer; text-align: left; transition: all 0.2s;">
+                  <span>🩺</span>
+                  <div>
+                    <strong style="display: block; font-size: 0.76rem; color: #e6edf3;">Support Device</strong>
+                    <small style="color: #3fb950; font-size: 0.68rem;">Verified Positive</small>
+                  </div>
+                </button>
+                <button type="button" class="benchmark-case-btn" data-case-id="normal" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 0.78rem; background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; cursor: pointer; text-align: left; transition: all 0.2s;">
+                  <span>🫁</span>
+                  <div>
+                    <strong style="display: block; font-size: 0.76rem; color: #e6edf3;">Normal CXR</strong>
+                    <small style="color: #8b949e; font-size: 0.68rem;">Verified Negative</small>
+                  </div>
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Card 2: Model Selection & Inference Parameters -->
@@ -205,6 +243,29 @@
               <div class="meta-item">
                 <small>ATTRIBUTION PSNR</small>
                 <strong id="result-psnr-val" style="color: #00d2ff;">— dB</strong>
+              </div>
+              <div class="meta-item">
+                <small>DIAGNOSTIC CERTAINTY</small>
+                <strong id="result-certainty-badge" style="color: #3fb950;">🟢 High Certainty</strong>
+              </div>
+            </div>
+
+            <!-- Ground Truth Verification Banner (Active when Benchmark Case is tested) -->
+            <div id="ground-truth-benchmark-banner" class="studio-card" style="margin-bottom: 16px; background: rgba(56, 139, 253, 0.08); border: 1px solid rgba(56, 139, 253, 0.4); border-left: 4px solid #58a6ff; padding: 14px 18px;" hidden>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+                <div style="flex: 1 1 300px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.15rem;" id="gt-icon">🫀</span>
+                    <strong style="color: #58a6ff; font-size: 0.96rem;" id="gt-title">Verified Radiologist Benchmark Case</strong>
+                    <span id="gt-badge" style="background: rgba(63, 185, 80, 0.2); color: #3fb950; border: 1px solid rgba(63, 185, 80, 0.4); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: bold;">Ground Truth Confirmed</span>
+                  </div>
+                  <p id="gt-report-text" style="font-size: 0.84rem; color: #c9d1d9; margin: 6px 0 4px; line-height: 1.45;">Radiologist Report: Gross cardiomegaly with CTR > 0.62.</p>
+                  <div style="font-size: 0.78rem; color: #8b949e;" id="gt-concordance-text">Multi-Model Concordance: 4/4 Architectures Concordant</div>
+                </div>
+                <div style="text-align: right; min-width: 160px;">
+                  <span style="font-size: 0.72rem; color: #8b949e; text-transform: uppercase;">Prediction Accuracy</span>
+                  <div id="gt-accuracy-badge" style="font-size: 1.05rem; font-weight: bold; color: #3fb950;">✅ Match Confirmed</div>
+                </div>
               </div>
             </div>
 

@@ -11,6 +11,8 @@ let uploadedFiles = [];
 let activeFileIndex = 0;
 let registeredModels = [];
 let activePrediction = null;
+let activeBenchmarkCase = null;
+let benchmarkCasesData = [];
 
 // ==============================================================================
 // 1. TOAST NOTIFICATIONS & UTILITIES
@@ -64,6 +66,9 @@ $('jump-to-xai-btn')?.addEventListener('click', () => switchTab('xai'));
 
 function handleFilesAdded(fileList) {
   if (!fileList || !fileList.length) return;
+  activeBenchmarkCase = null;
+  const gtBanner = $('ground-truth-benchmark-banner');
+  if (gtBanner) gtBanner.hidden = true;
 
   const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
   const newFiles = Array.from(fileList).filter((f) => {
@@ -412,6 +417,9 @@ function handleOODRejection(data) {
 
 function resetPredictionView() {
   activePrediction = null;
+  activeBenchmarkCase = null;
+  const gtBanner = $('ground-truth-benchmark-banner');
+  if (gtBanner) gtBanner.hidden = true;
   $('empty-results-state').hidden = false;
   $('results-display-container').hidden = true;
   $('ood-alert-banner').hidden = true;
@@ -433,6 +441,51 @@ function renderPredictionResults(data) {
   const psnrVal = (data.psnr && data.psnr.db) ? data.psnr.db : (data.explanation?.panels?.psnr_db || '32.4');
   if ($('result-psnr-val')) {
     $('result-psnr-val').textContent = `${psnrVal} dB`;
+  }
+
+  // Update Diagnostic Certainty Badge
+  const certBadge = $('result-certainty-badge');
+  if (certBadge && data.diagnostic_certainty) {
+    certBadge.textContent = data.diagnostic_certainty.badge;
+    certBadge.style.color = data.diagnostic_certainty.color;
+  }
+
+  // Update Ground Truth Verification Banner if benchmark case tested
+  const gtBanner = $('ground-truth-benchmark-banner');
+  if (gtBanner) {
+    if (activeBenchmarkCase) {
+      gtBanner.hidden = false;
+      $('gt-icon').textContent = activeBenchmarkCase.icon || '🔬';
+      $('gt-title').textContent = `Radiologist Ground Truth: ${activeBenchmarkCase.name}`;
+      $('gt-report-text').innerHTML = `<strong>Radiologist Ground Truth:</strong> ${escapeHtml(activeBenchmarkCase.radiologist_report)}`;
+      $('gt-concordance-text').textContent = `Expected: ${activeBenchmarkCase.expected_concordance}`;
+
+      const topFinding = data.highest_finding;
+      const numPos = data.positive_findings ? data.positive_findings.length : 0;
+      let isMatch = false;
+      if (activeBenchmarkCase.id === 'normal') {
+        isMatch = (numPos === 0);
+      } else if (activeBenchmarkCase.id === 'cardiomegaly') {
+        isMatch = (topFinding === 'Cardiomegaly' || topFinding === 'Enlarged Cardiomediastinum');
+      } else if (activeBenchmarkCase.id === 'fracture') {
+        isMatch = (topFinding === 'Fracture');
+      } else if (activeBenchmarkCase.id === 'device') {
+        isMatch = (topFinding === 'Support Devices');
+      }
+
+      const accBadge = $('gt-accuracy-badge');
+      if (accBadge) {
+        if (isMatch) {
+          accBadge.textContent = '✅ Verified Match';
+          accBadge.style.color = '#3fb950';
+        } else {
+          accBadge.textContent = '⚠️ Review Recommended';
+          accBadge.style.color = '#d29922';
+        }
+      }
+    } else {
+      gtBanner.hidden = true;
+    }
   }
 
   const threshold = parseFloat($('threshold-slider').value);
@@ -772,6 +825,53 @@ async function loadBenchmarks() {
 $('refresh-benchmarks-btn')?.addEventListener('click', loadBenchmarks);
 
 // ==============================================================================
+// 9. RADIOLOGIST GROUND TRUTH BENCHMARK CASES CONTROLLER
+// ==============================================================================
+
+async function initBenchmarkCases() {
+  try {
+    const res = await fetch('/api/benchmark-cases');
+    if (!res.ok) return;
+    benchmarkCasesData = await res.json();
+
+    document.querySelectorAll('.benchmark-case-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const caseId = btn.dataset.caseId;
+        const caseObj = benchmarkCasesData.find((c) => c.id === caseId);
+        if (!caseObj) return;
+
+        showToast(`Loading radiologist-verified ${caseObj.name} benchmark case…`);
+        try {
+          const imgRes = await fetch(caseObj.image_url);
+          if (!imgRes.ok) throw new Error('Could not fetch sample image');
+          const blob = await imgRes.blob();
+          const file = new File([blob], caseObj.filename, { type: blob.type || 'image/jpeg' });
+
+          uploadedFiles = [file];
+          activeFileIndex = 0;
+          activeBenchmarkCase = caseObj;
+
+          renderBatchThumbnails();
+          updateInferenceButtonState();
+
+          // Auto-trigger analysis
+          setTimeout(() => {
+            const runBtn = $('run-inference-btn');
+            if (runBtn && !runBtn.disabled) {
+              runBtn.click();
+            }
+          }, 150);
+        } catch (err) {
+          showToast(`Failed to load benchmark case: ${err.message}`, 5000);
+        }
+      });
+    });
+  } catch (err) {
+    console.error('Benchmark cases initialization error:', err);
+  }
+}
+
+// ==============================================================================
 // INITIALIZATION
 // ==============================================================================
 
@@ -779,4 +879,5 @@ window.addEventListener('DOMContentLoaded', () => {
   loadSystemStatus();
   loadBenchmarks();
   loadFindingEvidence("Lung Opacity");
+  initBenchmarkCases();
 });
