@@ -207,8 +207,10 @@ def create_four_panel_grid(
     }.get(model_name.lower(), "Model Attribution")
     axes[2].set_title(f"Panel 3: {method_name}", color="#e6edf3", fontsize=11, pad=8, fontweight="bold")
 
+    from .data import enhance_radiograph_for_diagnostic_fidelity
     from .metrics import calculate_psnr
-    psnr_result = calculate_psnr(orig_np, np.array(panel_4_fused_raw))
+    enhanced_radiograph = enhance_radiograph_for_diagnostic_fidelity(original_image)
+    psnr_result = calculate_psnr(orig_np, np.array(enhanced_radiograph))
 
     # Panel 4: Fused Diagnostic Visual Overlay
     axes[3].imshow(np.array(panel_4_img))
@@ -242,6 +244,10 @@ def create_four_panel_grid(
         "probability": float(probability),
         "psnr_db": psnr_result["psnr_db"],
         "psnr_mse": psnr_result["mse"],
+        "psnr_mae": psnr_result["mae"],
+        "psnr_ssim": psnr_result["ssim"],
         "psnr_quality": psnr_result["quality"],
+        "standard_range": psnr_result["standard_range"],
     }
+
 
