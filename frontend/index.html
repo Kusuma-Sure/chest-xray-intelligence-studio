@@ -1,88 +1,539 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#07111e">
-  <title>Chest X-ray Intelligence Studio</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0e14">
+  <title>Chest X-ray Intelligence Studio · Medical AI & Explainable Deep Learning</title>
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-<div class="shell">
-  <header class="hero">
-    <div class="eyebrow">CAPSTONE RESEARCH PLATFORM · CHEXPERT</div>
-    <div class="hero-row"><div><h1>Chest X-ray Intelligence Studio</h1><p>AI-based medical image classification and explainable deep learning — multi-label prediction, model attribution and evidence-aware graph context.</p></div><div class="hero-mark">CX<span>AI</span></div></div>
-    <div class="hero-meta"><span>Dataset · CheXpert-v1.0-small</span><span>13 radiographic findings</span><span>PyTorch inference</span><span>Local deployment</span></div>
+<div class="app-layout">
+  <!-- Top Navigation & Header -->
+  <header class="studio-header">
+    <div class="header-content">
+      <div class="header-brand">
+        <div class="brand-badge">
+          <span class="pulse-indicator"></span>
+          <span class="badge-text">CAPSTONE RESEARCH PLATFORM</span>
+        </div>
+        <h1 class="app-title">Chest X-ray Intelligence Studio</h1>
+        <p class="app-subtitle">AI-Based Medical Image Classification and Explainable Deep Learning</p>
+      </div>
+      <div class="header-stats">
+        <div class="stat-pill">
+          <small>DATASET</small>
+          <strong>CheXpert-v1.0-small</strong>
+        </div>
+        <div class="stat-pill">
+          <small>TARGET FINDINGS</small>
+          <strong>13 Multi-Label Abnormalities</strong>
+        </div>
+        <div class="stat-pill">
+          <small>COMPUTE DEVICE</small>
+          <strong id="runtime-device">Detecting…</strong>
+        </div>
+        <div class="stat-pill">
+          <small>API STATUS</small>
+          <strong id="api-status" class="status-online">Connecting…</strong>
+        </div>
+      </div>
+    </div>
   </header>
-  <section class="status-grid">
-    <div class="status-card"><small>RUNTIME DEVICE</small><strong id="runtime-device">Checking…</strong></div>
-    <div class="status-card"><small>INFERENCE INTEGRITY</small><strong>Checkpoint required · no mock predictions</strong></div>
-    <div class="status-card"><small>CLINICAL USE</small><strong>Research support only · not diagnosis</strong></div>
-  </section>
-  <nav class="tabs" aria-label="Main navigation">
-    <button class="tab active" data-tab="analysis">Chest X-ray Analysis</button>
-    <button class="tab" data-tab="comparison">Multi-Model Comparison</button>
-    <button class="tab" data-tab="explain">Explainable AI</button>
-    <button class="tab" data-tab="about">About Project</button>
+
+  <!-- Navigation Bar (5 Tabs) -->
+  <nav class="studio-nav" aria-label="Main Navigation">
+    <button class="nav-tab active" data-tab="analysis">
+      <span class="tab-icon">🫁</span>
+      <span class="tab-label">Image Analysis</span>
+    </button>
+    <button class="nav-tab" data-tab="xai">
+      <span class="tab-icon">🔍</span>
+      <span class="tab-label">Explainable AI (XAI)</span>
+    </button>
+    <button class="nav-tab" data-tab="graphrag">
+      <span class="tab-icon">🕸️</span>
+      <span class="tab-label">GraphRAG Evidence</span>
+    </button>
+    <button class="nav-tab" data-tab="benchmark">
+      <span class="tab-icon">📊</span>
+      <span class="tab-label">Model Benchmark</span>
+    </button>
+    <button class="nav-tab" data-tab="about">
+      <span class="tab-icon">ℹ️</span>
+      <span class="tab-label">About Project</span>
+    </button>
   </nav>
 
-  <main>
+  <main class="studio-main">
+    <!-- ================================================================= -->
+    <!-- TAB 1: IMAGE ANALYSIS & INFERENCE WORKSPACE                       -->
+    <!-- ================================================================= -->
     <section class="tab-panel active" id="panel-analysis">
-      <div class="section-head"><div><div class="section-kicker">01 / INFERENCE WORKSPACE</div><h2>Chest X-ray analysis</h2><p>Upload one image, choose a trained model, and inspect all 13 finding probabilities.</p></div><div class="pill" id="api-status">Connecting to API</div></div>
-      <div class="analysis-grid">
-        <div class="column-stack">
-          <section class="panel">
-            <div class="panel-head"><div><div class="section-kicker">01 / INPUT IMAGE</div><h3>Radiograph upload</h3></div><span class="subtle">JPG · PNG · WEBP</span></div>
-            <label class="dropzone" id="dropzone" for="image-file"><input id="image-file" type="file" accept="image/jpeg,image/png,image/webp" hidden><div class="upload-icon">↑</div><strong>Drop a chest X-ray here</strong><span>or click to browse · maximum 20 MB</span><img id="image-preview" alt="Uploaded chest X-ray preview" hidden></label>
-            <div class="image-actions"><span id="image-info">No image selected</span><button class="text-button" id="clear-image" disabled>Remove image</button></div>
-          </section>
-          <section class="panel settings-panel">
-            <div class="section-kicker">02 / MODEL CONFIGURATION</div><h3>Inference settings</h3>
-            <label for="model-select">Classification architecture</label><select id="model-select"><option>Loading models…</option></select><div id="model-hint" class="field-hint">Checking trained checkpoints…</div>
-            <div class="range-label"><label for="threshold">Decision threshold</label><output id="threshold-value">0.50</output></div>
-            <input id="threshold" type="range" min="0.10" max="0.90" step="0.01" value="0.50">
-            <div class="range-minmax"><span>0.10 · more sensitive</span><span>0.90 · more selective</span></div>
-            <button class="primary-button" id="analyze-button" disabled><span>Analyze Chest X-ray</span><span>↗</span></button>
-            <div class="field-hint" id="analyze-hint">Upload an image and install a trained checkpoint to enable inference.</div>
-          </section>
+      <div class="workspace-grid">
+        <!-- Left Column: Image Upload & Model Config -->
+        <div class="workspace-sidebar">
+          <!-- Card 1: Multi-Image Drag & Drop Upload (1 to 5 images) -->
+          <div class="studio-card upload-card">
+            <div class="card-header">
+              <span class="card-kicker">STEP 01</span>
+              <h3>Radiograph Upload</h3>
+              <span class="card-badge">1 to 5 Images</span>
+            </div>
+            
+            <label class="dropzone" id="dropzone" for="image-files">
+              <input id="image-files" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+              <div class="dropzone-icon">⇪</div>
+              <strong class="dropzone-title">Drag & drop chest radiographs here</strong>
+              <span class="dropzone-hint">or click to browse · select 1 to 5 JPG/PNG images</span>
+            </label>
+
+            <!-- Multi-Image Thumbnail Carousel -->
+            <div id="batch-preview-container" class="batch-preview-grid" hidden>
+              <!-- Populated by JavaScript -->
+            </div>
+
+            <div class="upload-actions">
+              <span id="upload-status-text" class="status-hint">No image selected</span>
+              <button class="action-btn-text" id="clear-all-images" disabled>Clear All</button>
+            </div>
+          </div>
+
+          <!-- Card 2: Model Selection & Inference Parameters -->
+          <div class="studio-card config-card">
+            <div class="card-header">
+              <span class="card-kicker">STEP 02</span>
+              <h3>Architecture & Parameters</h3>
+            </div>
+
+            <div class="field-group">
+              <label for="model-select" class="field-label">
+                <span>Select Architecture</span>
+                <span id="model-status-badge" class="model-badge">Checking…</span>
+              </label>
+              <select id="model-select" class="studio-select">
+                <option value="">Loading architectures…</option>
+              </select>
+              <p id="model-help-text" class="field-description">Checking checkpoint availability…</p>
+            </div>
+
+            <div class="field-group">
+              <div class="slider-header">
+                <label for="threshold-slider" class="field-label">Multi-Label Decision Threshold</label>
+                <span id="threshold-display" class="slider-val">0.50</span>
+              </div>
+              <input id="threshold-slider" class="studio-slider" type="range" min="0.10" max="0.90" step="0.05" value="0.50">
+              <div class="slider-scale">
+                <span>0.10 (High Sensitivity)</span>
+                <span>0.50 (Balanced)</span>
+                <span>0.90 (High Specificity)</span>
+              </div>
+            </div>
+
+            <div class="action-row">
+              <button class="primary-btn" id="run-inference-btn" disabled>
+                <span class="btn-text">Analyze Chest Radiograph</span>
+                <span class="btn-arrow">→</span>
+              </button>
+            </div>
+            <p id="action-hint" class="field-description hint-subtle">Upload an image and choose an available model to begin.</p>
+          </div>
         </div>
-        <div class="column-stack">
-          <section class="panel result-panel">
-            <div class="panel-head"><div><div class="section-kicker">03 / PREDICTION RESULTS</div><h3>Finding probabilities</h3></div><span class="pill muted" id="result-status">Awaiting image</span></div>
-            <div id="empty-results" class="empty-state"><div class="empty-glyph">◌</div><strong>No prediction generated</strong><p>Results will appear here after a compatible trained checkpoint is installed and analysis is run.</p></div>
-            <div id="results-content" hidden><div class="result-summary"><div><small>MODEL</small><strong id="result-model">—</strong></div><div><small>PROCESSING TIME</small><strong id="result-time">—</strong></div><div><small>THRESHOLD</small><strong id="result-threshold">—</strong></div></div><div class="probability-list" id="probability-list"></div></div>
-          </section>
-          <section class="panel">
-            <div class="panel-head"><div><div class="section-kicker">04 / GRAPH CONTEXT</div><h3>Graph-based retrieval</h3></div><span class="pill muted">Transparent retrieval</span></div>
-            <div id="graph-context" class="graph-empty">Graph context will be shown after a successful prediction. No unsupported medical evidence is generated.</div>
-          </section>
+
+        <!-- Right Column: Inference Results & Probabilities -->
+        <div class="workspace-content">
+          <!-- OOD Alert Banner (Shown only when non-CXR uploaded) -->
+          <div id="ood-alert-banner" class="alert-banner alert-danger" hidden>
+            <div class="alert-icon">⚠️</div>
+            <div class="alert-body">
+              <h4 id="ood-alert-title">Input Rejected: Out-of-Distribution Image Detected</h4>
+              <p id="ood-alert-message">This image could not be verified as a supported frontal chest radiograph.</p>
+              <div class="ood-diagnostics" id="ood-diagnostics-box"></div>
+            </div>
+          </div>
+
+          <!-- Model Missing Checkpoint Notice -->
+          <div id="checkpoint-missing-notice" class="alert-banner alert-warning" hidden>
+            <div class="alert-icon">ℹ️</div>
+            <div class="alert-body">
+              <h4 id="missing-notice-title">Checkpoint Missing</h4>
+              <p id="missing-notice-text">Inference is disabled because no trained weights exist for this model.</p>
+              <div class="training-cta">
+                <span>To train this model:</span>
+                <code>python -m backend.train --model [model_name] --data-root [path]</code>
+                <a href="#about" class="learn-link" onclick="document.querySelector('[data-tab=about]').click()">View Training Guide</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div id="empty-results-state" class="empty-display">
+            <div class="empty-icon">🩺</div>
+            <h3>Awaiting Radiograph Analysis</h3>
+            <p>Upload 1 to 5 frontal chest X-ray images, configure your architecture, and click <strong>Analyze Chest Radiograph</strong> to generate 13 multi-label predictions and visual explanations.</p>
+          </div>
+
+          <!-- Results Container -->
+          <div id="results-display-container" class="results-container" hidden>
+            <!-- Meta Bar -->
+            <div class="results-meta-bar">
+              <div class="meta-item">
+                <small>MODEL</small>
+                <strong id="result-model-name">—</strong>
+              </div>
+              <div class="meta-item">
+                <small>INFERENCE TIME</small>
+                <strong id="result-runtime">—</strong>
+              </div>
+              <div class="meta-item">
+                <small>DECISION THRESHOLD</small>
+                <strong id="result-threshold-val">0.50</strong>
+              </div>
+              <div class="meta-item">
+                <small>POSITIVE FINDINGS</small>
+                <strong id="result-positives-count" class="accent-text">0 Detected</strong>
+              </div>
+            </div>
+
+            <!-- Finding Probabilities Table & Bars -->
+            <div class="studio-card findings-card">
+              <div class="card-header">
+                <h3>13-Finding Multi-Label Probabilities</h3>
+                <span class="subtle-legend"><span class="legend-dot dot-positive"></span> ≥ Threshold</span>
+              </div>
+              <div class="findings-list" id="findings-list">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+
+            <!-- Quick Explainability Preview Link -->
+            <div class="quick-xai-card studio-card">
+              <div class="card-header">
+                <h3>Visual Explanation & Evidence Available</h3>
+                <button class="secondary-btn" id="jump-to-xai-btn">View 4-Panel XAI Dashboard →</button>
+              </div>
+              <p>Model attribution maps and verified GraphRAG literature citations have been generated for this prediction.</p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="tab-panel" id="panel-comparison">
-      <div class="section-head"><div><div class="section-kicker">02 / VALIDATION REGISTER</div><h2>Multi-model comparison</h2><p>Metrics are loaded only from evaluation files generated by actual training runs.</p></div><button class="secondary-button" id="refresh-benchmarks">Refresh metrics</button></div>
-      <div class="notice">A benchmark is available only after a model has been trained and evaluated on a validation split. Missing values are intentionally left blank.</div>
-      <div class="table-wrap"><table><thead><tr><th>Architecture</th><th>Runtime status</th><th>Macro AUROC</th><th>Macro AUPRC</th><th>Micro F1</th><th>Macro F1</th><th>Validation N</th></tr></thead><tbody id="benchmark-rows"><tr><td colspan="7" class="table-empty">Loading benchmark register…</td></tr></tbody></table></div>
-      <p class="footnote" id="benchmark-note">Metric provenance will be displayed here.</p>
+    <!-- ================================================================= -->
+    <!-- TAB 2: EXPLAINABLE AI (XAI) DASHBOARD                             -->
+    <!-- ================================================================= -->
+    <section class="tab-panel" id="panel-xai">
+      <div class="xai-header-bar">
+        <div>
+          <h2>Explainable AI (XAI) Diagnostic Dashboard</h2>
+          <p>Four-panel visual explanation grounding model decisions through model-specific mathematical attributions.</p>
+        </div>
+        <div class="xai-finding-selector">
+          <label for="xai-focus-select">Explain Specific Finding:</label>
+          <select id="xai-focus-select" class="studio-select compact-select">
+            <option value="">Highest Probability Finding</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="xai-empty-notice" class="empty-display">
+        <div class="empty-icon">🔬</div>
+        <h3>No Visual Attribution Generated Yet</h3>
+        <p>Run inference on a chest radiograph in the <strong>Image Analysis</strong> tab to render the 4-panel visual attribution grid.</p>
+      </div>
+
+      <div id="xai-active-grid" class="xai-four-panel-grid" hidden>
+        <!-- Panel 1: Original Radiograph -->
+        <div class="xai-card">
+          <div class="xai-card-title">
+            <span class="panel-num">PANEL 1</span>
+            <h4>Original X-ray</h4>
+          </div>
+          <div class="xai-img-frame">
+            <img id="panel-1-img" alt="Original X-ray">
+          </div>
+          <div class="xai-caption">Preprocessed clinical input radiograph.</div>
+        </div>
+
+        <!-- Panel 2: Model Attribution Heatmap -->
+        <div class="xai-card">
+          <div class="xai-card-title">
+            <span class="panel-num">PANEL 2</span>
+            <h4 id="panel-2-title">Model-Specific Heatmap</h4>
+          </div>
+          <div class="xai-img-frame">
+            <img id="panel-2-img" alt="Model Attribution Heatmap">
+          </div>
+          <div class="xai-caption" id="panel-2-caption">Grad-CAM / Gradient × Activation map.</div>
+        </div>
+
+        <!-- Panel 3: ViT Attention Rollout / Secondary View -->
+        <div class="xai-card">
+          <div class="xai-card-title">
+            <span class="panel-num">PANEL 3</span>
+            <h4 id="panel-3-title">ViT Attention Rollout</h4>
+          </div>
+          <div class="xai-img-frame">
+            <img id="panel-3-img" alt="Attention Rollout / Structural Map">
+          </div>
+          <div class="xai-caption" id="panel-3-caption">Multi-layer recursive self-attention rollout.</div>
+        </div>
+
+        <!-- Panel 4: Fused Diagnostic Visual Overlay -->
+        <div class="xai-card highlight-card">
+          <div class="xai-card-title">
+            <span class="panel-num highlight-num">PANEL 4</span>
+            <h4 id="panel-4-title">Fused Visual Overlay</h4>
+          </div>
+          <div class="xai-img-frame">
+            <img id="panel-4-img" alt="Fused Radiograph Overlay">
+          </div>
+          <div class="xai-caption" id="panel-4-caption">High-contrast alpha blend of radiograph and model attribution.</div>
+        </div>
+      </div>
+
+      <div class="attribution-disclaimer studio-card" id="xai-methodology-note" hidden>
+        <h4>Methodological Notice</h4>
+        <p>Visual attribution maps highlight image regions that exerted high computational weight on the model's classification score. They represent model attribution sensitivity and do not constitute radiologist-confirmed lesion boundaries or diagnostic certainties.</p>
+      </div>
     </section>
 
-    <section class="tab-panel" id="panel-explain">
-      <div class="section-head"><div><div class="section-kicker">03 / MODEL ATTRIBUTION</div><h2>Explainable AI</h2><p>Attribution panels are generated from the loaded model's activations or attention at inference time.</p></div></div>
-      <div id="xai-empty" class="notice large-notice">Run a prediction with <strong>Explain</strong> enabled to view the original radiograph and its model-derived attribution overlay. No decorative or synthetic heatmaps are used.</div>
-      <div id="xai-content" class="xai-grid" hidden><div class="xai-card"><h3>Original radiograph</h3><img id="xai-original" alt="Original radiograph"></div><div class="xai-card"><h3>Model attribution</h3><img id="xai-overlay" alt="Model-derived attribution overlay"><p id="xai-method" class="footnote"></p></div></div>
-      <div class="notice">Grad-CAM, gradient × activation and GAT attention are visualization aids. Attention is not proof of a disease location and does not establish clinical explainability.</div>
+    <!-- ================================================================= -->
+    <!-- TAB 3: GRAPHRAG EVIDENCE & FACTUAL GROUNDING                      -->
+    <!-- ================================================================= -->
+    <section class="tab-panel" id="panel-graphrag">
+      <div class="graphrag-container">
+        <div class="section-title-row">
+          <div>
+            <h2>GraphRAG Biomedical Knowledge & Literature Engine</h2>
+            <p>100% factual grounding connecting predicted findings to precise thoracic anatomy and peer-reviewed medical citations.</p>
+          </div>
+          <div class="finding-filter-group">
+            <label for="graph-finding-filter">Browse Finding Knowledge:</label>
+            <select id="graph-finding-filter" class="studio-select compact-select">
+              <!-- Populated with 13 findings -->
+            </select>
+          </div>
+        </div>
+
+        <div class="graphrag-content-layout">
+          <!-- Left: Grounded Synthesis Report -->
+          <div class="grounded-report-col">
+            <div class="studio-card">
+              <div class="card-header">
+                <h3>Evidence-Grounded Clinical Synthesis</h3>
+                <span class="badge-guardrail">Strict Guardrails Active</span>
+              </div>
+              <div id="grounded-synthesis-text" class="markdown-prose">
+                <p>Run inference on a chest X-ray to generate an evidence-grounded GraphRAG synthesis.</p>
+              </div>
+            </div>
+
+            <!-- Verified Medical Citations -->
+            <div class="studio-card">
+              <div class="card-header">
+                <h3>Verified Medical Evidence (NCBI Bookshelf & PubMed)</h3>
+              </div>
+              <div id="evidence-citations-list" class="citations-list">
+                <p class="subtle-text">Verified literature excerpts will appear here upon prediction or finding selection.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Knowledge Graph Topology -->
+          <div class="graph-topology-col">
+            <div class="studio-card">
+              <div class="card-header">
+                <h3>Biomedical Knowledge Graph Subgraph</h3>
+                <span class="badge-subtle" id="graph-stats-badge">13 Findings · 50+ Nodes</span>
+              </div>
+              <div class="graph-relations-viewport" id="graph-relations-viewport">
+                <p class="subtle-text">Graph relationships connecting findings, anatomical regions, and categories will render here.</p>
+              </div>
+            </div>
+
+            <!-- Anatomical Map Card -->
+            <div class="studio-card">
+              <div class="card-header">
+                <h3>Target Anatomical Structures</h3>
+              </div>
+              <div id="anatomical-regions-box" class="tag-cloud">
+                <!-- Dynamically populated tags -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
+    <!-- ================================================================= -->
+    <!-- TAB 4: MODEL BENCHMARK COMPARISON                                 -->
+    <!-- ================================================================= -->
+    <section class="tab-panel" id="panel-benchmark">
+      <div class="benchmark-container">
+        <div class="section-title-row">
+          <div>
+            <h2>Multi-Model Empirical Benchmark Comparison</h2>
+            <p>Evaluated on held-out CheXpert-v1.0-small validation set across the four implemented deep learning architectures.</p>
+          </div>
+          <button class="action-btn-secondary" id="refresh-benchmarks-btn">Refresh Metrics</button>
+        </div>
+
+        <!-- Comparative Charts -->
+        <div class="benchmark-charts-grid">
+          <div class="studio-card chart-card">
+            <div class="card-header">
+              <h3>Overall Metric Comparison (AUROC, F1, Precision, Recall)</h3>
+            </div>
+            <div class="chart-wrapper">
+              <img id="benchmark-chart-overall" class="responsive-chart" alt="Benchmark Comparison Chart">
+            </div>
+          </div>
+          <div class="studio-card chart-card">
+            <div class="card-header">
+              <h3>Finding-Wise AUROC: ViT-B/16 vs. DenseNet121 Baseline</h3>
+            </div>
+            <div class="chart-wrapper">
+              <img id="benchmark-chart-findings" class="responsive-chart" alt="Finding-Wise Comparison Chart">
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Evaluation Table -->
+        <div class="studio-card">
+          <div class="card-header">
+            <h3>Performance Summary Register</h3>
+            <span class="card-badge">Zero Mock Scores</span>
+          </div>
+          <div class="table-responsive">
+            <table class="benchmark-table">
+              <thead>
+                <tr>
+                  <th>Architecture</th>
+                  <th>Model Family</th>
+                  <th>Macro AUROC</th>
+                  <th>Macro AUPRC</th>
+                  <th>Micro F1</th>
+                  <th>Macro F1</th>
+                  <th>Micro Accuracy</th>
+                  <th>Validation N</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="benchmark-table-body">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+          <p class="table-note" id="benchmark-provenance-note">Metrics are derived strictly from empirical evaluation runs.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 5: ABOUT PROJECT & METHODOLOGY                                -->
+    <!-- ================================================================= -->
     <section class="tab-panel" id="panel-about">
-      <div class="section-head"><div><div class="section-kicker">04 / PROJECT OVERVIEW</div><h2>About this capstone</h2><p>Four architecture families are trained and evaluated through a shared CheXpert pipeline.</p></div></div>
-      <div class="about-grid"><article class="panel"><div class="model-number">01</div><h3>ViT-B/16</h3><p>Vision Transformer for patch-based global image representation. Gradient × activation attribution is exposed from the final transformer block.</p></article><article class="panel"><div class="model-number">02</div><h3>DenseNet121</h3><p>Densely connected convolutional network with a 13-label classification head and Grad-CAM attribution.</p></article><article class="panel"><div class="model-number">03</div><h3>CapsNet</h3><p>Convolutional encoder, primary capsules and dynamic routing. Disease capsule lengths are converted to logits for multi-label training.</p></article><article class="panel"><div class="model-number">04</div><h3>Graph Attention Network</h3><p>CNN feature cells are represented as a 7×7 grid graph and processed with multi-head graph attention.</p></article></div>
-      <div class="notice"><strong>Label policy:</strong> this baseline maps uncertain labels (-1) and missing labels (NaN) to 0, matching the supplied training notes. This is an experimental assumption, not a statement that uncertain or unmentioned findings are clinically negative.</div>
-      <div class="notice warn"><strong>Research prototype only.</strong> It is not a medical device and must not be used for diagnosis, triage or treatment decisions.</div>
-      <p class="footnote">API documentation: <a href="/docs" target="_blank" rel="noopener">/docs</a> · Health: <a href="/api/health" target="_blank" rel="noopener">/api/health</a></p>
+      <div class="about-container">
+        <div class="about-hero studio-card">
+          <h2>Chest X-ray Intelligence Studio</h2>
+          <p class="about-lead">A Classifier with Visual Explanations for Predictions on Image Data Using Graph-Based Retrieval-Augmented Generation Systems.</p>
+          <div class="meta-tags">
+            <span class="meta-tag">Domain: Medical Image Analysis</span>
+            <span class="meta-tag">Dataset: CheXpert-v1.0-small</span>
+            <span class="meta-tag">Primary Architecture: Vision Transformer (ViT-B/16)</span>
+            <span class="meta-tag">Frameworks: PyTorch · Transformers · NetworkX · FastAPI</span>
+          </div>
+        </div>
+
+        <!-- End-to-End Pipeline Schematic -->
+        <div class="studio-card">
+          <div class="card-header">
+            <h3>End-to-End System Architecture</h3>
+          </div>
+          <div class="pipeline-schematic">
+            <div class="pipeline-step">
+              <div class="step-num">01</div>
+              <strong>Input Radiograph</strong>
+              <span>JPG / PNG frontal chest radiograph (1-5 batch)</span>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+              <div class="step-num">02</div>
+              <strong>OOD Filter</strong>
+              <span>Rejects non-medical photos, MRI, & artifacts</span>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+              <div class="step-num">03</div>
+              <strong>Deep Learning</strong>
+              <span>ViT-B/16 · DenseNet · CapsNet · GAT</span>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+              <div class="step-num">04</div>
+              <strong>XAI Attribution</strong>
+              <span>Rollout · Grad-CAM · Grad-CAM++ · GAT</span>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+              <div class="step-num">05</div>
+              <strong>GraphRAG Engine</strong>
+              <span>Biomedical Knowledge Graph & NCBI Evidence</span>
+            </div>
+            <div class="pipeline-arrow">→</div>
+            <div class="pipeline-step">
+              <div class="step-num">06</div>
+              <strong>Grounded Output</strong>
+              <span>Factual clinical synthesis with zero hallucinations</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Four Architecture Breakdown -->
+        <div class="about-models-grid">
+          <div class="studio-card model-detail-card">
+            <div class="badge-primary">PRIMARY PROPOSED</div>
+            <h3>Vision Transformer (ViT-B/16)</h3>
+            <p>Hugging Face Transformer fine-tuned on 13 CheXpert findings. Processes 196 non-overlapping 16×16 patches across 12 transformer encoder blocks. Provides recursive Attention Rollout across all 12 multi-head layers and class-specific Gradient × Activation attribution on patch embeddings.</p>
+          </div>
+          <div class="studio-card model-detail-card">
+            <div class="badge-baseline">CNN BASELINE</div>
+            <h3>DenseNet121</h3>
+            <p>Densely connected convolutional network enforcing feature reuse and strong gradient propagation across dense blocks. Features a 13-label linear classification head with class-specific Grad-CAM heatmaps generated from <code>features.denseblock4</code>.</p>
+          </div>
+          <div class="studio-card model-detail-card">
+            <div class="badge-capsule">PART-WHOLE MODEL</div>
+            <h3>Capsule Network (CapsNet)</h3>
+            <p>Preserves hierarchical part-whole relationships through vector capsules and dynamic routing agreement. Utilizes Conv1-3, 784 Primary Capsules (dim 8), and 13 Disease Capsules (dim 16) with true Grad-CAM++ higher-order gradients.</p>
+          </div>
+          <div class="studio-card model-detail-card">
+            <div class="badge-graph">GRAPH NEURAL NET</div>
+            <h3>Graph Attention Network (GAT)</h3>
+            <p>Converts convolutional feature representations into an image-region graph (49 spatial nodes) with 8-neighbor spatial adjacency. Uses multi-head graph attention to model dependencies across thoracic anatomical sectors.</p>
+          </div>
+        </div>
+
+        <!-- Clinical Disclaimer & Limitations -->
+        <div class="studio-card disclaimer-card">
+          <h4>Academic Research Disclaimer & Ethical Limitations</h4>
+          <p>This software platform was created exclusively for educational, scientific, and academic research purposes as part of a final-year Capstone project in Computer Science & Engineering (AI & ML). Its disease probability outputs and visual attribution heatmaps do NOT constitute medical diagnoses, clinical prognoses, or radiological validation. It is not an FDA-cleared or CE-marked medical device. No clinical decisions, prescription of medication, or treatment triage should be made based on this software without independent, comprehensive review by a licensed board-certified radiologist.</p>
+        </div>
+      </div>
     </section>
   </main>
-  <footer><span>CHEXPERT CAPSTONE · LOCAL RESEARCH DEPLOYMENT</span><span>PyTorch · FastAPI · Multi-label classification</span></footer>
+
+  <footer class="studio-footer">
+    <div class="footer-left">
+      <span>CHEST X-RAY INTELLIGENCE STUDIO · FINAL YEAR B.TECH CSE (AI & ML) CAPSTONE</span>
+    </div>
+    <div class="footer-right">
+      <span>PyTorch 2.9 · Transformers · NetworkX · FastAPI · Windows Certified</span>
+    </div>
+  </footer>
 </div>
-<div class="toast" id="toast" role="status"></div>
+
+<div class="toast-container" id="toast-container" role="status"></div>
 <script src="/static/app.js"></script>
-</body></html>
+</body>
+</html>

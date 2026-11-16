@@ -1,1 +1,145 @@
-[]
+[
+  {
+    "finding": "Enlarged Cardiomediastinum",
+    "source_id": "NCBI_Mediastinal_Widening_2025",
+    "title": "Mediastinal Masses and Widening",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK544327/",
+    "evidence_text": "Mediastinal widening on chest radiograph is defined by a mediastinal width exceeding 8 cm on supine AP or 6 cm on erect PA projection. Differential diagnoses include mediastinal hematoma, lymphadenopathy, vascular aneurysm, thymoma, or projection magnification.",
+    "anatomical_region": "Mediastinum",
+    "visual_concept": "Mediastinal widening exceeding standard diagnostic thresholds (>8cm AP or >6cm PA)."
+  },
+  {
+    "finding": "Cardiomegaly",
+    "source_id": "NCBI_Cardiomegaly_2025",
+    "title": "Cardiomegaly Imaging and Evaluation",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK553140/",
+    "evidence_text": "Cardiomegaly is recognized on posteroanterior (PA) chest radiographs when the cardiothoracic ratio (maximum transverse cardiac diameter divided by internal thoracic diameter) exceeds 0.50. On AP supine films, projection magnification may falsely elevate CTR up to 0.60.",
+    "anatomical_region": "Cardiac Silhouette",
+    "visual_concept": "Cardiothoracic ratio (CTR) exceeding 0.50 on PA projection."
+  },
+  {
+    "finding": "Lung Opacity",
+    "source_id": "NCBI_Lung_Opacity_2025",
+    "title": "Challenging Chest Radiograph Interpretation",
+    "authors": "NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK621651/",
+    "evidence_text": "Airspace opacities on chest radiographs may be associated with several processes, including pneumonia, aspiration, atelectasis, alveolar pulmonary edema, and pulmonary hemorrhage.",
+    "anatomical_region": "Lung Parenchyma",
+    "visual_concept": "Increased pulmonary attenuation obscuring underlying bronchovascular markings."
+  },
+  {
+    "finding": "Lung Lesion",
+    "source_id": "NCBI_Lung_Lesion_2025",
+    "title": "Solitary Pulmonary Nodule and Pulmonary Mass",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK556101/",
+    "evidence_text": "A pulmonary nodule is defined as a discrete, well-circumscribed radiographic opacity less than or equal to 3 cm in diameter surrounded by aerated lung parenchyma without associated adenopathy, atelectasis, or pleural effusion. Lesions larger than 3 cm are defined as pulmonary masses.",
+    "anatomical_region": "Lung Parenchyma",
+    "visual_concept": "Discrete solitary or multiple circumscribed nodule (<3cm) or mass (>3cm)."
+  },
+  {
+    "finding": "Edema",
+    "source_id": "NCBI_Pulmonary_Edema_2025",
+    "title": "Pulmonary Edema Radiographic Findings",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK544260/",
+    "evidence_text": "Cardiogenic pulmonary edema typically progresses from pulmonary venous hypertension (upper lobe blood diversion) to interstitial edema (peribronchial cuffing, Kerley B lines, perihilar haze) and finally alveolar edema with classic bat-wing / butterfly alveolar infiltrates.",
+    "anatomical_region": "Pulmonary Interstitium and Alveoli",
+    "visual_concept": "Peribronchial cuffing, Kerley B lines, and bat-wing perihilar consolidation."
+  },
+  {
+    "finding": "Consolidation",
+    "source_id": "NCBI_Airspace_Consolidation_2025",
+    "title": "Airspace Disease and Lung Consolidation",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK534823/",
+    "evidence_text": "Consolidation refers to the replacement of alveolar gas by cellular exudate, transudate, blood, or neoplastic tissue. Cardinal radiographic signs include homogeneous dense airspace opacity, preservation of lung volume, air bronchograms, and the silhouette sign.",
+    "anatomical_region": "Alveolar Airspaces",
+    "visual_concept": "Homogeneous dense airspace filling with visible air bronchograms and silhouette sign."
+  },
+  {
+    "finding": "Pneumonia",
+    "source_id": "NCBI_Pneumonia_Imaging_2025",
+    "title": "Community-Acquired Pneumonia Imaging",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK430749/",
+    "evidence_text": "Chest radiography is the reference diagnostic imaging standard for suspected pneumonia, demonstrating focal or multifocal parenchymal consolidation, patchy alveolar infiltrates, or interstitial opacities correlating with respiratory infection symptoms.",
+    "anatomical_region": "Lung Parenchyma",
+    "visual_concept": "Patchy or confluent focal alveolar infiltrate with ill-defined margins."
+  },
+  {
+    "finding": "Atelectasis",
+    "source_id": "NCBI_Atelectasis_2025",
+    "title": "Atelectasis: Radiographic Features and Mechanisms",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK545160/",
+    "evidence_text": "Atelectasis represents the collapse or incomplete expansion of pulmonary parenchyma. Direct radiographic signs include displacement of interlobar fissures and crowded vascular markings; indirect signs include diaphragmatic elevation, mediastinal shift toward the collapsed lobe, and compensatory hyperinflation.",
+    "anatomical_region": "Lung Parenchyma",
+    "visual_concept": "Linear horizontal plate-like opacity or triangular wedge of volume loss."
+  },
+  {
+    "finding": "Pneumothorax",
+    "source_id": "NCBI_Pneumothorax_2025",
+    "title": "Pneumothorax: Imaging and Evaluation",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK441885/",
+    "evidence_text": "Pneumothorax is identified on erect chest radiographs by a thin, sharp white line representing the visceral pleura separated from the chest wall by a peripheral radiolucent space devoid of bronchovascular markings.",
+    "anatomical_region": "Pleural Space",
+    "visual_concept": "Sharp visceral pleural white line with peripheral radiolucent space devoid of markings."
+  },
+  {
+    "finding": "Pleural Effusion",
+    "source_id": "NCBI_Pleural_Effusion_2025",
+    "title": "Pleural Effusion Imaging",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK448189/",
+    "evidence_text": "Free-flowing pleural effusion collects in dependent pleural recesses, producing blunting of the posterior costophrenic angle on lateral films (>50 mL) and lateral costophrenic angle blunting on erect frontal radiographs (>175 mL), accompanied by a characteristic fluid meniscus sign.",
+    "anatomical_region": "Pleural Space",
+    "visual_concept": "Blunting of lateral/posterior costophrenic angle with fluid meniscus sign."
+  },
+  {
+    "finding": "Pleural Other",
+    "source_id": "NCBI_Pleural_Disease_2025",
+    "title": "Pleural Disease and Calcification",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK557762/",
+    "evidence_text": "Non-effusion pleural abnormalities on chest radiography include diffuse or focal pleural thickening, fibrothorax, and calcified pleural plaques (often along the diaphragmatic or posterolateral parietal pleura), characteristic of prior hemothorax, empyema, or mineral exposure.",
+    "anatomical_region": "Pleural Membranes",
+    "visual_concept": "Focal pleural thickening, nodularity, or calcified plaques along parietal pleura."
+  },
+  {
+    "finding": "Fracture",
+    "source_id": "NCBI_Thoracic_Fractures_2025",
+    "title": "Rib and Thoracic Skeletal Fractures",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK542283/",
+    "evidence_text": "Thoracic cage fractures are identified on chest radiographs by cortical disruption, cortical step deformity, offset of bony trabeculae, or displacement of bone fragments along the ribs, clavicles, scapulae, or thoracic vertebrae.",
+    "anatomical_region": "Thoracic Skeletal Cage",
+    "visual_concept": "Disruption of cortical bone margin, lucent fracture line, or step deformity."
+  },
+  {
+    "finding": "Support Devices",
+    "source_id": "NCBI_Thoracic_Lines_2025",
+    "title": "Radiographic Evaluation of Thoracic Lines and Tubes",
+    "authors": "StatPearls Publishing / NCBI Bookshelf",
+    "year": 2025,
+    "source_url": "https://www.ncbi.nlm.nih.gov/books/NBK554477/",
+    "evidence_text": "Chest radiography is essential for verifying proper anatomical positioning of invasive thoracic hardware, including endotracheal tubes (tip 3-5 cm above the carina), central venous catheters (tip at the cavoatrial junction), nasogastric tubes (tip subdiaphragmatic in stomach), chest tubes, and cardiac pacemakers.",
+    "anatomical_region": "Thorax (Invasive / Monitoring Hardware)",
+    "visual_concept": "Radio-opaque tubing, catheters, pacing leads, or monitoring electrodes."
+  }
+]

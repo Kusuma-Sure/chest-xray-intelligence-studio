@@ -1,14 +1,33 @@
+"""Script to check available model architectures and checkpoint readiness."""
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from backend.api import checkpoint_path
-from backend.config import CHECKPOINT_DIR, MODEL_INFO
+# Add project root to path
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
 
-print(f'Checkpoint folder: {CHECKPOINT_DIR}')
-for model_id, info in MODEL_INFO.items():
-    path=checkpoint_path(model_id)
-    status='READY' if path.is_file() else 'MISSING'
-    size=f'{path.stat().st_size/(1024**2):.1f} MB' if path.is_file() else '—'
-    print(f'{model_id:10s} | {status:7s} | {info["name"]:42s} | {path.name if path.is_file() else "expected .pt file"} | {size}')
-print('Compatibility is checked strictly when the API loads a selected model.')
+from backend.config import CHECKPOINT_DIR
+from backend.model_registry import list_all_models
+
+print("=" * 80)
+print("CHEST X-RAY INTELLIGENCE STUDIO -- MODEL REGISTRY AUDIT")
+print("=" * 80)
+print(f"Checkpoints Directory: {CHECKPOINT_DIR}\n")
+
+models = list_all_models()
+for m in models:
+    status_icon = "[OK]" if m["available"] else "[--]"
+    primary_tag = " [PRIMARY]" if m["primary"] else ""
+    print(f"{status_icon} {m['name']}{primary_tag}")
+    print(f"    Architecture ID : {m['id']}")
+    print(f"    Family          : {m['family']}")
+    print(f"    Status          : {m['status']}")
+    print(f"    Expected File   : {m['checkpoint_file']}")
+    print(f"    XAI Method      : {m['explanation_method']}")
+    print(f"    Details         : {m['reason']}")
+    print("-" * 80)
+
+available_count = sum(1 for m in models if m["available"])
+print(f"\nSummary: {available_count} of {len(models)} model checkpoints installed.")
+if available_count == 0:
+    print("NOTE: Application starts in diagnostic mode. Train checkpoints using notebooks/CheXpert_Colab_Training.ipynb.")
