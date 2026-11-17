@@ -539,6 +539,10 @@ body {
    ALERT BANNERS & NOTICES
    ========================================================================== */
 
+[hidden] {
+  display: none !important;
+}
+
 .alert-banner {
   display: flex;
   gap: 14px;

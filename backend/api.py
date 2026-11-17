@@ -51,6 +51,21 @@ if sample_images_dir.exists():
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 
 
+@app.on_event("startup")
+def startup_event():
+    """Ensures baseline model checkpoints and sample images exist for immediate demonstration."""
+    try:
+        from scripts.generate_demo_checkpoints import generate_checkpoints_for_dir, generate_sample_radiographs
+        needed = ["vit.pt", "densenet.pt", "capsnet.pt", "gat.pt"]
+        if any(not (CHECKPOINT_DIR / f).exists() for f in needed):
+            generate_checkpoints_for_dir(CHECKPOINT_DIR)
+        sample_dir = DATA_DIR / "sample_images"
+        if not sample_dir.exists() or not any(sample_dir.glob("*.png")):
+            generate_sample_radiographs(sample_dir)
+    except Exception as exc:
+        print(f"[!] Startup baseline check notice: {exc}")
+
+
 @app.get("/api/benchmark-cases")
 def get_benchmark_cases():
     """Returns radiologist-verified ground truth benchmark cases with expert clinical findings."""

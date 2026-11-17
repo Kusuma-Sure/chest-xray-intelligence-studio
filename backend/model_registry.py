@@ -55,11 +55,11 @@ def get_model_status(model_id: str) -> dict[str, Any]:
     exists = path.exists() if path else False
 
     if exists:
-        status_label = "Available – trained checkpoint loaded"
+        status_label = "Available - trained checkpoint loaded"
         status_code = "ready"
         reason = f"Checkpoint verified at {path.name}. Ready for real inference."
     else:
-        status_label = "Missing checkpoint – training required"
+        status_label = "Missing checkpoint - training required"
         status_code = "missing"
         reason = (
             f"Trained weights not found in {CHECKPOINT_DIR}. Train this model using the supplied "

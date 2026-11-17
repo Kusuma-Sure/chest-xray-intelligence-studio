@@ -32,10 +32,10 @@ for model_id in models:
             if isinstance(logits, tuple):
                 logits = logits[0]
         if logits.shape == (1, len(FINDINGS)):
-            print(f"  ✓ PASSED: Successfully loaded and verified [1, 13] logits output.")
+            print(f"  [PASSED] Successfully loaded and verified [1, 13] logits output.")
         else:
-            print(f"  ✗ WARNING: Output shape was {logits.shape}, expected (1, 13).")
+            print(f"  [WARNING] Output shape was {logits.shape}, expected (1, 13).")
     except Exception as exc:
-        print(f"  ✗ ERROR loading checkpoint: {exc}")
+        print(f"  [ERROR] loading checkpoint: {exc}")
 
 print("\nVerification check complete.")
