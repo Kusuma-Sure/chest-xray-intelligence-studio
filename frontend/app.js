@@ -600,18 +600,22 @@ function renderPredictionResults(data) {
   // Toggle buttons
   const btnAnnotated = $('btn-toggle-annotated');
   const btnFused = $('btn-toggle-fused');
+  const btnLandmarks = $('btn-toggle-landmarks');
   const btnClean = $('btn-toggle-clean');
+  const landmarksSrc = data.landmarks_overlay || (data.explanation?.panels?.landmarks_overlay);
 
   function setActiveToggle(btn) {
-    [btnAnnotated, btnFused, btnClean].forEach((b) => {
+    [btnAnnotated, btnFused, btnLandmarks, btnClean].forEach((b) => {
       if (b) {
         b.style.background = '#161b22';
         b.style.color = '#8b949e';
+        b.style.borderColor = '#30363d';
       }
     });
     if (btn) {
       btn.style.background = '#21262d';
-      btn.style.color = '#e6edf3';
+      btn.style.color = '#00d2ff';
+      btn.style.borderColor = '#00d2ff';
     }
   }
 
@@ -627,11 +631,32 @@ function renderPredictionResults(data) {
       setActiveToggle(btnFused);
     };
   }
+  if (btnLandmarks) {
+    btnLandmarks.onclick = () => {
+      if (radImg && landmarksSrc) radImg.src = landmarksSrc;
+      setActiveToggle(btnLandmarks);
+    };
+  }
   if (btnClean) {
     btnClean.onclick = () => {
       if (radImg && cleanSrc) radImg.src = cleanSrc;
       setActiveToggle(btnClean);
     };
+  }
+
+  // Populate Anatomical Compartments & CTR
+  if ($('anatomy-ctr-badge')) {
+    const ctrVal = data.ctr || (data.anatomical_metrics?.cardiothoracic_ratio) || 0.45;
+    const isEnlarged = ctrVal > 0.50;
+    $('anatomy-ctr-badge').textContent = `CTR: ${ctrVal.toFixed(2)} (${isEnlarged ? 'Enlarged' : 'Normal'})`;
+    $('anatomy-ctr-badge').style.color = isEnlarged ? '#ff4444' : '#00d2ff';
+    $('anatomy-ctr-badge').style.borderColor = isEnlarged ? 'rgba(255, 68, 68, 0.5)' : 'rgba(0, 210, 255, 0.4)';
+    $('anatomy-ctr-badge').style.background = isEnlarged ? 'rgba(255, 68, 68, 0.15)' : 'rgba(0, 210, 255, 0.15)';
+  }
+  if (data.anatomical_metrics) {
+    if ($('anat-heart-status')) {
+      $('anat-heart-status').textContent = data.anatomical_metrics.interpretation || 'Cardiac Silhouette Analyzed';
+    }
   }
 
   // Populate Anatomically Grounded Focal Bounding Boxes Card

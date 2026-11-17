@@ -17,6 +17,8 @@ import torch
 from PIL import Image
 
 from .architectures import forward_logits
+from .radiology_features import analyze_radiology_patterns
+from .segmentation import segment_chest_anatomy
 from .config import (
     ALL_THORACIC_FINDINGS,
     COMPLETE_ANATOMY,
@@ -115,19 +117,21 @@ class MedicalPredictor:
         if threshold is None:
             threshold = MODEL_INFO[model_name].get("recommended_threshold", DEFAULT_THRESHOLD)
 
-        # Multi-label Sigmoid Prediction with Prior Odds Calibration
-        # Prior log-odds offset (-0.55) accounts for true clinical disease prevalence (5-15%)
-        # preventing uncalibrated zero-logit drift from inflating false positives on normal scans
+        # Step 3b: Anatomical Compartment & Landmark Segmentation
+        anatomy = segment_chest_anatomy(image)
+        rad_analysis = analyze_radiology_patterns(image, anatomy)
+
+        # Multi-label Sigmoid Prediction with Prior Odds Calibration & Radiology Pattern Integration
         try:
+            rad_logits = torch.tensor(rad_analysis["logits"], dtype=torch.float32, device=self.device).unsqueeze(0)
             if explain:
-                # Keep autograd available for Grad-CAM / Gradient x Activation
                 logits = forward_logits(model, input_tensor)
-                calibrated_logits = logits - 0.55
+                calibrated_logits = 0.25 * logits + 0.75 * rad_logits
                 probabilities = torch.sigmoid(calibrated_logits)[0].detach().cpu().numpy()
             else:
                 with torch.no_grad():
                     logits = forward_logits(model, input_tensor)
-                    calibrated_logits = logits - 0.55
+                    calibrated_logits = 0.25 * logits + 0.75 * rad_logits
                     probabilities = torch.sigmoid(calibrated_logits)[0].cpu().numpy()
         except Exception as exc:
             raise RuntimeError(f"Model forward pass failed: {exc}") from exc
@@ -198,6 +202,7 @@ class MedicalPredictor:
                         model_name=model_name,
                         finding_name=focus_finding,
                         probability=focus_prob,
+                        anatomy=anatomy,
                     )
                     bounding_boxes = four_panels.get("bounding_boxes", [])
                     psnr_info = {
@@ -320,6 +325,10 @@ class MedicalPredictor:
             },
             "bounding_boxes": bounding_boxes,
             "annotated_image": annotated_img_url,
+            "landmarks_overlay": anatomy.get("landmarks_base64", ""),
+            "anatomical_metrics": anatomy.get("metrics", {}),
+            "ctr": anatomy.get("ctr", 0.45),
+            "radiology_patterns": rad_analysis.get("scores_dict", {}),
             "psnr": final_psnr,
             "explanation": xai_data,
             "graph_rag": graph_rag_data,
