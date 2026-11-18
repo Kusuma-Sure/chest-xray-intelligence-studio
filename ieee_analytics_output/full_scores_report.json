@@ -1,0 +1,1241 @@
+{
+  "title": "Chest X-Ray Intelligence Studio: IEEE Analytics & Multi-Model Evaluation Report",
+  "timestamp": "2026-11-19",
+  "findings_taxonomy": [
+    "Enlarged Cardiomediastinum",
+    "Cardiomegaly",
+    "Lung Opacity",
+    "Lung Lesion",
+    "Edema",
+    "Consolidation",
+    "Pneumonia",
+    "Atelectasis",
+    "Pneumothorax",
+    "Pleural Effusion",
+    "Pleural Other",
+    "Fracture",
+    "Support Devices"
+  ],
+  "chexpert_5_subset": [
+    "Atelectasis",
+    "Cardiomegaly",
+    "Consolidation",
+    "Edema",
+    "Pleural Effusion"
+  ],
+  "model_summaries": {
+    "vit": {
+      "name": "Vision Transformer (ViT-B/16)",
+      "family": "Vision Transformer",
+      "params_m": 85.8,
+      "operating_threshold": 0.4,
+      "overall_accuracy": 0.895,
+      "macro_auroc": 0.882,
+      "macro_auprc": 0.814,
+      "chexpert5_auroc": 0.8872,
+      "f1_score": 0.795,
+      "sensitivity": 0.842,
+      "specificity": 0.908
+    },
+    "densenet": {
+      "name": "DenseNet121",
+      "family": "Densely Connected CNN",
+      "params_m": 7.0,
+      "operating_threshold": 0.45,
+      "overall_accuracy": 0.878,
+      "macro_auroc": 0.852,
+      "macro_auprc": 0.785,
+      "chexpert5_auroc": 0.8562,
+      "f1_score": 0.764,
+      "sensitivity": 0.815,
+      "specificity": 0.892
+    },
+    "capsnet": {
+      "name": "CapsNet",
+      "family": "Capsule Network with Dynamic Routing",
+      "params_m": 2.1,
+      "operating_threshold": 0.4,
+      "overall_accuracy": 0.865,
+      "macro_auroc": 0.838,
+      "macro_auprc": 0.768,
+      "chexpert5_auroc": 0.842,
+      "f1_score": 0.748,
+      "sensitivity": 0.798,
+      "specificity": 0.88
+    },
+    "gat": {
+      "name": "ImageGraphGAT",
+      "family": "Graph Attention Network + CNN",
+      "params_m": 11.3,
+      "operating_threshold": 0.38,
+      "overall_accuracy": 0.884,
+      "macro_auroc": 0.861,
+      "macro_auprc": 0.796,
+      "chexpert5_auroc": 0.865,
+      "f1_score": 0.778,
+      "sensitivity": 0.826,
+      "specificity": 0.897
+    }
+  },
+  "model_histories": {
+    "vit": {
+      "epochs": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "train_loss": [
+        0.462,
+        0.385,
+        0.321,
+        0.274,
+        0.238,
+        0.212,
+        0.194,
+        0.182,
+        0.174,
+        0.168
+      ],
+      "val_loss": [
+        0.441,
+        0.362,
+        0.305,
+        0.263,
+        0.235,
+        0.219,
+        0.211,
+        0.208,
+        0.206,
+        0.205
+      ],
+      "train_auroc": [
+        0.725,
+        0.784,
+        0.831,
+        0.865,
+        0.892,
+        0.914,
+        0.928,
+        0.939,
+        0.946,
+        0.952
+      ],
+      "val_auroc": [
+        0.712,
+        0.771,
+        0.818,
+        0.849,
+        0.868,
+        0.879,
+        0.884,
+        0.886,
+        0.887,
+        0.887
+      ],
+      "train_f1": [
+        0.635,
+        0.69,
+        0.738,
+        0.772,
+        0.798,
+        0.818,
+        0.832,
+        0.841,
+        0.847,
+        0.852
+      ],
+      "val_f1": [
+        0.618,
+        0.672,
+        0.715,
+        0.748,
+        0.769,
+        0.782,
+        0.789,
+        0.793,
+        0.795,
+        0.795
+      ],
+      "val_acc": [
+        0.825,
+        0.846,
+        0.864,
+        0.877,
+        0.885,
+        0.89,
+        0.893,
+        0.894,
+        0.895,
+        0.895
+      ]
+    },
+    "densenet": {
+      "epochs": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "train_loss": [
+        0.495,
+        0.412,
+        0.348,
+        0.298,
+        0.261,
+        0.236,
+        0.218,
+        0.205,
+        0.196,
+        0.19
+      ],
+      "val_loss": [
+        0.472,
+        0.395,
+        0.334,
+        0.287,
+        0.258,
+        0.244,
+        0.238,
+        0.235,
+        0.234,
+        0.233
+      ],
+      "train_auroc": [
+        0.698,
+        0.752,
+        0.799,
+        0.835,
+        0.864,
+        0.885,
+        0.901,
+        0.912,
+        0.92,
+        0.926
+      ],
+      "val_auroc": [
+        0.684,
+        0.739,
+        0.784,
+        0.817,
+        0.839,
+        0.849,
+        0.854,
+        0.855,
+        0.856,
+        0.856
+      ],
+      "train_f1": [
+        0.601,
+        0.658,
+        0.704,
+        0.739,
+        0.765,
+        0.784,
+        0.798,
+        0.808,
+        0.815,
+        0.82
+      ],
+      "val_f1": [
+        0.582,
+        0.638,
+        0.684,
+        0.718,
+        0.739,
+        0.752,
+        0.759,
+        0.762,
+        0.764,
+        0.764
+      ],
+      "val_acc": [
+        0.808,
+        0.829,
+        0.847,
+        0.86,
+        0.869,
+        0.874,
+        0.876,
+        0.877,
+        0.878,
+        0.878
+      ]
+    },
+    "capsnet": {
+      "epochs": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "train_loss": [
+        0.528,
+        0.445,
+        0.38,
+        0.328,
+        0.289,
+        0.262,
+        0.243,
+        0.23,
+        0.221,
+        0.215
+      ],
+      "val_loss": [
+        0.505,
+        0.428,
+        0.366,
+        0.318,
+        0.287,
+        0.271,
+        0.264,
+        0.261,
+        0.26,
+        0.259
+      ],
+      "train_auroc": [
+        0.665,
+        0.721,
+        0.768,
+        0.805,
+        0.834,
+        0.856,
+        0.872,
+        0.884,
+        0.892,
+        0.898
+      ],
+      "val_auroc": [
+        0.652,
+        0.708,
+        0.753,
+        0.789,
+        0.814,
+        0.829,
+        0.837,
+        0.84,
+        0.842,
+        0.842
+      ],
+      "train_f1": [
+        0.572,
+        0.631,
+        0.679,
+        0.714,
+        0.741,
+        0.76,
+        0.774,
+        0.784,
+        0.791,
+        0.796
+      ],
+      "val_f1": [
+        0.551,
+        0.612,
+        0.66,
+        0.695,
+        0.719,
+        0.734,
+        0.742,
+        0.746,
+        0.748,
+        0.748
+      ],
+      "val_acc": [
+        0.792,
+        0.815,
+        0.833,
+        0.847,
+        0.856,
+        0.861,
+        0.863,
+        0.864,
+        0.865,
+        0.865
+      ]
+    },
+    "gat": {
+      "epochs": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "train_loss": [
+        0.478,
+        0.398,
+        0.334,
+        0.285,
+        0.249,
+        0.223,
+        0.205,
+        0.192,
+        0.183,
+        0.177
+      ],
+      "val_loss": [
+        0.456,
+        0.378,
+        0.319,
+        0.274,
+        0.246,
+        0.231,
+        0.224,
+        0.221,
+        0.22,
+        0.219
+      ],
+      "train_auroc": [
+        0.71,
+        0.768,
+        0.815,
+        0.85,
+        0.878,
+        0.899,
+        0.914,
+        0.925,
+        0.933,
+        0.939
+      ],
+      "val_auroc": [
+        0.698,
+        0.755,
+        0.801,
+        0.833,
+        0.852,
+        0.86,
+        0.863,
+        0.864,
+        0.865,
+        0.865
+      ],
+      "train_f1": [
+        0.62,
+        0.676,
+        0.723,
+        0.758,
+        0.783,
+        0.802,
+        0.816,
+        0.826,
+        0.833,
+        0.838
+      ],
+      "val_f1": [
+        0.601,
+        0.655,
+        0.7,
+        0.733,
+        0.754,
+        0.767,
+        0.773,
+        0.776,
+        0.778,
+        0.778
+      ],
+      "val_acc": [
+        0.816,
+        0.838,
+        0.855,
+        0.868,
+        0.876,
+        0.88,
+        0.882,
+        0.883,
+        0.884,
+        0.884
+      ]
+    }
+  },
+  "per_class_metrics": {
+    "vit": {
+      "Enlarged Cardiomediastinum": {
+        "auroc": 0.862,
+        "auprc": 0.785,
+        "accuracy": 0.891,
+        "precision": 0.774,
+        "recall": 0.815,
+        "f1": 0.794
+      },
+      "Cardiomegaly": {
+        "auroc": 0.915,
+        "auprc": 0.868,
+        "accuracy": 0.924,
+        "precision": 0.852,
+        "recall": 0.89,
+        "f1": 0.871
+      },
+      "Lung Opacity": {
+        "auroc": 0.882,
+        "auprc": 0.814,
+        "accuracy": 0.887,
+        "precision": 0.81,
+        "recall": 0.835,
+        "f1": 0.822
+      },
+      "Lung Lesion": {
+        "auroc": 0.854,
+        "auprc": 0.762,
+        "accuracy": 0.881,
+        "precision": 0.75,
+        "recall": 0.792,
+        "f1": 0.77
+      },
+      "Edema": {
+        "auroc": 0.901,
+        "auprc": 0.842,
+        "accuracy": 0.91,
+        "precision": 0.831,
+        "recall": 0.874,
+        "f1": 0.852
+      },
+      "Consolidation": {
+        "auroc": 0.878,
+        "auprc": 0.795,
+        "accuracy": 0.893,
+        "precision": 0.785,
+        "recall": 0.83,
+        "f1": 0.807
+      },
+      "Pneumonia": {
+        "auroc": 0.869,
+        "auprc": 0.779,
+        "accuracy": 0.886,
+        "precision": 0.768,
+        "recall": 0.818,
+        "f1": 0.792
+      },
+      "Atelectasis": {
+        "auroc": 0.872,
+        "auprc": 0.791,
+        "accuracy": 0.889,
+        "precision": 0.78,
+        "recall": 0.824,
+        "f1": 0.801
+      },
+      "Pneumothorax": {
+        "auroc": 0.896,
+        "auprc": 0.831,
+        "accuracy": 0.915,
+        "precision": 0.825,
+        "recall": 0.865,
+        "f1": 0.845
+      },
+      "Pleural Effusion": {
+        "auroc": 0.928,
+        "auprc": 0.886,
+        "accuracy": 0.932,
+        "precision": 0.87,
+        "recall": 0.912,
+        "f1": 0.891
+      },
+      "Pleural Other": {
+        "auroc": 0.841,
+        "auprc": 0.738,
+        "accuracy": 0.874,
+        "precision": 0.725,
+        "recall": 0.77,
+        "f1": 0.747
+      },
+      "Fracture": {
+        "auroc": 0.835,
+        "auprc": 0.729,
+        "accuracy": 0.87,
+        "precision": 0.715,
+        "recall": 0.762,
+        "f1": 0.738
+      },
+      "Support Devices": {
+        "auroc": 0.932,
+        "auprc": 0.898,
+        "accuracy": 0.938,
+        "precision": 0.885,
+        "recall": 0.925,
+        "f1": 0.905
+      }
+    },
+    "densenet": {
+      "Enlarged Cardiomediastinum": {
+        "auroc": 0.835,
+        "auprc": 0.752,
+        "accuracy": 0.872,
+        "precision": 0.742,
+        "recall": 0.785,
+        "f1": 0.763
+      },
+      "Cardiomegaly": {
+        "auroc": 0.888,
+        "auprc": 0.832,
+        "accuracy": 0.905,
+        "precision": 0.818,
+        "recall": 0.858,
+        "f1": 0.838
+      },
+      "Lung Opacity": {
+        "auroc": 0.856,
+        "auprc": 0.782,
+        "accuracy": 0.871,
+        "precision": 0.778,
+        "recall": 0.805,
+        "f1": 0.791
+      },
+      "Lung Lesion": {
+        "auroc": 0.828,
+        "auprc": 0.731,
+        "accuracy": 0.865,
+        "precision": 0.72,
+        "recall": 0.761,
+        "f1": 0.74
+      },
+      "Edema": {
+        "auroc": 0.872,
+        "auprc": 0.806,
+        "accuracy": 0.891,
+        "precision": 0.796,
+        "recall": 0.841,
+        "f1": 0.818
+      },
+      "Consolidation": {
+        "auroc": 0.85,
+        "auprc": 0.764,
+        "accuracy": 0.875,
+        "precision": 0.754,
+        "recall": 0.798,
+        "f1": 0.775
+      },
+      "Pneumonia": {
+        "auroc": 0.84,
+        "auprc": 0.748,
+        "accuracy": 0.868,
+        "precision": 0.736,
+        "recall": 0.784,
+        "f1": 0.759
+      },
+      "Atelectasis": {
+        "auroc": 0.845,
+        "auprc": 0.758,
+        "accuracy": 0.872,
+        "precision": 0.748,
+        "recall": 0.791,
+        "f1": 0.769
+      },
+      "Pneumothorax": {
+        "auroc": 0.868,
+        "auprc": 0.795,
+        "accuracy": 0.895,
+        "precision": 0.791,
+        "recall": 0.832,
+        "f1": 0.811
+      },
+      "Pleural Effusion": {
+        "auroc": 0.898,
+        "auprc": 0.848,
+        "accuracy": 0.912,
+        "precision": 0.835,
+        "recall": 0.879,
+        "f1": 0.856
+      },
+      "Pleural Other": {
+        "auroc": 0.814,
+        "auprc": 0.708,
+        "accuracy": 0.857,
+        "precision": 0.695,
+        "recall": 0.738,
+        "f1": 0.716
+      },
+      "Fracture": {
+        "auroc": 0.808,
+        "auprc": 0.698,
+        "accuracy": 0.852,
+        "precision": 0.684,
+        "recall": 0.729,
+        "f1": 0.706
+      },
+      "Support Devices": {
+        "auroc": 0.905,
+        "auprc": 0.862,
+        "accuracy": 0.919,
+        "precision": 0.85,
+        "recall": 0.892,
+        "f1": 0.871
+      }
+    },
+    "capsnet": {
+      "Enlarged Cardiomediastinum": {
+        "auroc": 0.82,
+        "auprc": 0.734,
+        "accuracy": 0.86,
+        "precision": 0.725,
+        "recall": 0.768,
+        "f1": 0.746
+      },
+      "Cardiomegaly": {
+        "auroc": 0.875,
+        "auprc": 0.815,
+        "accuracy": 0.894,
+        "precision": 0.802,
+        "recall": 0.842,
+        "f1": 0.822
+      },
+      "Lung Opacity": {
+        "auroc": 0.841,
+        "auprc": 0.765,
+        "accuracy": 0.86,
+        "precision": 0.76,
+        "recall": 0.789,
+        "f1": 0.774
+      },
+      "Lung Lesion": {
+        "auroc": 0.812,
+        "auprc": 0.714,
+        "accuracy": 0.853,
+        "precision": 0.702,
+        "recall": 0.744,
+        "f1": 0.722
+      },
+      "Edema": {
+        "auroc": 0.858,
+        "auprc": 0.789,
+        "accuracy": 0.88,
+        "precision": 0.78,
+        "recall": 0.824,
+        "f1": 0.801
+      },
+      "Consolidation": {
+        "auroc": 0.836,
+        "auprc": 0.747,
+        "accuracy": 0.864,
+        "precision": 0.738,
+        "recall": 0.781,
+        "f1": 0.759
+      },
+      "Pneumonia": {
+        "auroc": 0.825,
+        "auprc": 0.731,
+        "accuracy": 0.856,
+        "precision": 0.72,
+        "recall": 0.768,
+        "f1": 0.743
+      },
+      "Atelectasis": {
+        "auroc": 0.831,
+        "auprc": 0.741,
+        "accuracy": 0.861,
+        "precision": 0.731,
+        "recall": 0.774,
+        "f1": 0.752
+      },
+      "Pneumothorax": {
+        "auroc": 0.852,
+        "auprc": 0.778,
+        "accuracy": 0.883,
+        "precision": 0.774,
+        "recall": 0.815,
+        "f1": 0.794
+      },
+      "Pleural Effusion": {
+        "auroc": 0.884,
+        "auprc": 0.83,
+        "accuracy": 0.901,
+        "precision": 0.818,
+        "recall": 0.862,
+        "f1": 0.839
+      },
+      "Pleural Other": {
+        "auroc": 0.801,
+        "auprc": 0.692,
+        "accuracy": 0.846,
+        "precision": 0.68,
+        "recall": 0.722,
+        "f1": 0.7
+      },
+      "Fracture": {
+        "auroc": 0.795,
+        "auprc": 0.682,
+        "accuracy": 0.841,
+        "precision": 0.67,
+        "recall": 0.714,
+        "f1": 0.691
+      },
+      "Support Devices": {
+        "auroc": 0.892,
+        "auprc": 0.846,
+        "accuracy": 0.908,
+        "precision": 0.834,
+        "recall": 0.878,
+        "f1": 0.855
+      }
+    },
+    "gat": {
+      "Enlarged Cardiomediastinum": {
+        "auroc": 0.845,
+        "auprc": 0.765,
+        "accuracy": 0.879,
+        "precision": 0.755,
+        "recall": 0.798,
+        "f1": 0.776
+      },
+      "Cardiomegaly": {
+        "auroc": 0.898,
+        "auprc": 0.845,
+        "accuracy": 0.912,
+        "precision": 0.83,
+        "recall": 0.871,
+        "f1": 0.85
+      },
+      "Lung Opacity": {
+        "auroc": 0.866,
+        "auprc": 0.794,
+        "accuracy": 0.879,
+        "precision": 0.79,
+        "recall": 0.818,
+        "f1": 0.804
+      },
+      "Lung Lesion": {
+        "auroc": 0.838,
+        "auprc": 0.744,
+        "accuracy": 0.872,
+        "precision": 0.732,
+        "recall": 0.774,
+        "f1": 0.752
+      },
+      "Edema": {
+        "auroc": 0.882,
+        "auprc": 0.818,
+        "accuracy": 0.899,
+        "precision": 0.808,
+        "recall": 0.852,
+        "f1": 0.829
+      },
+      "Consolidation": {
+        "auroc": 0.86,
+        "auprc": 0.776,
+        "accuracy": 0.882,
+        "precision": 0.766,
+        "recall": 0.81,
+        "f1": 0.787
+      },
+      "Pneumonia": {
+        "auroc": 0.85,
+        "auprc": 0.76,
+        "accuracy": 0.875,
+        "precision": 0.748,
+        "recall": 0.796,
+        "f1": 0.771
+      },
+      "Atelectasis": {
+        "auroc": 0.855,
+        "auprc": 0.77,
+        "accuracy": 0.879,
+        "precision": 0.76,
+        "recall": 0.803,
+        "f1": 0.781
+      },
+      "Pneumothorax": {
+        "auroc": 0.878,
+        "auprc": 0.808,
+        "accuracy": 0.902,
+        "precision": 0.804,
+        "recall": 0.845,
+        "f1": 0.824
+      },
+      "Pleural Effusion": {
+        "auroc": 0.908,
+        "auprc": 0.86,
+        "accuracy": 0.92,
+        "precision": 0.848,
+        "recall": 0.892,
+        "f1": 0.869
+      },
+      "Pleural Other": {
+        "auroc": 0.824,
+        "auprc": 0.719,
+        "accuracy": 0.864,
+        "precision": 0.708,
+        "recall": 0.75,
+        "f1": 0.728
+      },
+      "Fracture": {
+        "auroc": 0.818,
+        "auprc": 0.709,
+        "accuracy": 0.859,
+        "precision": 0.697,
+        "recall": 0.741,
+        "f1": 0.718
+      },
+      "Support Devices": {
+        "auroc": 0.915,
+        "auprc": 0.875,
+        "accuracy": 0.927,
+        "precision": 0.862,
+        "recall": 0.905,
+        "f1": 0.883
+      }
+    }
+  },
+  "live_predictions": {
+    "vit": {
+      "model_key": "vit",
+      "model_name": "Vision Transformer (ViT-B/16)",
+      "threshold": 0.4,
+      "z_deep": [
+        -2.6474931240081787,
+        -2.2273576259613037,
+        -2.8460941314697266,
+        -3.8344671726226807,
+        -2.2879724502563477,
+        -2.841949939727783,
+        -2.3721189498901367,
+        -2.6461730003356934,
+        -2.3829572200775146,
+        -3.0187265872955322,
+        -3.521456718444824,
+        -2.5338664054870605,
+        -2.5049242973327637
+      ],
+      "z_rad": [
+        -2.4423470497131348,
+        -2.751535415649414,
+        -2.5866894721984863,
+        -2.5866894721984863,
+        -2.751535415649414,
+        -2.944439172744751,
+        -2.944439172744751,
+        -2.4423470497131348,
+        -2.944439172744751,
+        -2.944439172744751,
+        -2.751535415649414,
+        -2.751535415649414,
+        -2.751535415649414
+      ],
+      "z_fused": [
+        -2.493633508682251,
+        -2.6204910278320312,
+        -2.651540756225586,
+        -2.8986339569091797,
+        -2.6356446743011475,
+        -2.9188170433044434,
+        -2.801359176635742,
+        -2.4933035373687744,
+        -2.8040688037872314,
+        -2.9630110263824463,
+        -2.9440157413482666,
+        -2.6971182823181152,
+        -2.689882755279541
+      ],
+      "probabilities": [
+        0.07630570977926254,
+        0.06783124059438705,
+        0.06589411199092865,
+        0.05222113057971001,
+        0.06687932461500168,
+        0.05123116821050644,
+        0.05725077539682388,
+        0.07632896304130554,
+        0.057104699313640594,
+        0.04912516102194786,
+        0.05002010613679886,
+        0.06314361840486526,
+        0.06357299536466599
+      ],
+      "free_energy": 0.1622600555419922,
+      "shannon_entropy": 0.33158085896418643,
+      "findings": [
+        "Enlarged Cardiomediastinum",
+        "Cardiomegaly",
+        "Lung Opacity",
+        "Lung Lesion",
+        "Edema",
+        "Consolidation",
+        "Pneumonia",
+        "Atelectasis",
+        "Pneumothorax",
+        "Pleural Effusion",
+        "Pleural Other",
+        "Fracture",
+        "Support Devices"
+      ]
+    },
+    "densenet": {
+      "model_key": "densenet",
+      "model_name": "DenseNet121",
+      "threshold": 0.45,
+      "z_deep": [
+        -2.1337387561798096,
+        -1.4658931493759155,
+        -3.861020088195801,
+        -2.9349639415740967,
+        -4.143825054168701,
+        -3.5810797214508057,
+        -2.9445371627807617,
+        -3.253777503967285,
+        -2.6932716369628906,
+        -3.3371665477752686,
+        -3.8062939643859863,
+        -3.0905325412750244,
+        -2.863853693008423
+      ],
+      "z_rad": [
+        -2.4423470497131348,
+        -2.751535415649414,
+        -2.5866894721984863,
+        -2.5866894721984863,
+        -2.751535415649414,
+        -2.944439172744751,
+        -2.944439172744751,
+        -2.4423470497131348,
+        -2.944439172744751,
+        -2.944439172744751,
+        -2.751535415649414,
+        -2.751535415649414,
+        -2.751535415649414
+      ],
+      "z_fused": [
+        -2.3651950359344482,
+        -2.4301247596740723,
+        -2.9052720069885254,
+        -2.673758029937744,
+        -3.0996079444885254,
+        -3.1035993099212646,
+        -2.9444637298583984,
+        -2.645204544067383,
+        -2.8816473484039307,
+        -3.04262113571167,
+        -3.0152249336242676,
+        -2.836284637451172,
+        -2.7796149253845215
+      ],
+      "probabilities": [
+        0.08586554229259491,
+        0.08090420067310333,
+        0.051893558353185654,
+        0.06453970819711685,
+        0.043123431503772736,
+        0.04295903444290161,
+        0.049998823553323746,
+        0.06628519296646118,
+        0.05306829512119293,
+        0.045537110418081284,
+        0.04674278199672699,
+        0.055394627153873444,
+        0.05843574181199074
+      ],
+      "free_energy": 0.23224616050720215,
+      "shannon_entropy": 0.31436942173884463,
+      "findings": [
+        "Enlarged Cardiomediastinum",
+        "Cardiomegaly",
+        "Lung Opacity",
+        "Lung Lesion",
+        "Edema",
+        "Consolidation",
+        "Pneumonia",
+        "Atelectasis",
+        "Pneumothorax",
+        "Pleural Effusion",
+        "Pleural Other",
+        "Fracture",
+        "Support Devices"
+      ]
+    },
+    "capsnet": {
+      "model_key": "capsnet",
+      "model_name": "CapsNet",
+      "threshold": 0.4,
+      "z_deep": [
+        -2.5370500087738037,
+        -2.5235438346862793,
+        -2.571751356124878,
+        -2.396909236907959,
+        -2.5191333293914795,
+        -2.4428296089172363,
+        -2.4024410247802734,
+        -2.743708610534668,
+        -2.407654285430908,
+        -2.5577163696289062,
+        -2.4786458015441895,
+        -2.4977262020111084,
+        -2.437882900238037
+      ],
+      "z_rad": [
+        -2.4423470497131348,
+        -2.751535415649414,
+        -2.5866894721984863,
+        -2.5866894721984863,
+        -2.751535415649414,
+        -2.944439172744751,
+        -2.944439172744751,
+        -2.4423470497131348,
+        -2.944439172744751,
+        -2.944439172744751,
+        -2.751535415649414,
+        -2.751535415649414,
+        -2.751535415649414
+      ],
+      "z_fused": [
+        -2.4660227298736572,
+        -2.69453763961792,
+        -2.5829548835754395,
+        -2.5392444133758545,
+        -2.693434953689575,
+        -2.8190369606018066,
+        -2.8089396953582764,
+        -2.5176873207092285,
+        -2.8102431297302246,
+        -2.8477585315704346,
+        -2.6833128929138184,
+        -2.6880831718444824,
+        -2.6731224060058594
+      ],
+      "probabilities": [
+        0.07827471196651459,
+        0.06329645216464996,
+        0.07024350762367249,
+        0.07315238565206528,
+        0.06336185336112976,
+        0.05630407854914665,
+        0.05684299394488335,
+        0.07462749630212784,
+        0.05677315592765808,
+        0.05479729175567627,
+        0.06396523118019104,
+        0.06368020921945572,
+        0.0645780935883522
+      ],
+      "free_energy": 0.10675406455993652,
+      "shannon_entropy": 0.3448482293349046,
+      "findings": [
+        "Enlarged Cardiomediastinum",
+        "Cardiomegaly",
+        "Lung Opacity",
+        "Lung Lesion",
+        "Edema",
+        "Consolidation",
+        "Pneumonia",
+        "Atelectasis",
+        "Pneumothorax",
+        "Pleural Effusion",
+        "Pleural Other",
+        "Fracture",
+        "Support Devices"
+      ]
+    },
+    "gat": {
+      "model_key": "gat",
+      "model_name": "ImageGraphGAT",
+      "threshold": 0.38,
+      "z_deep": [
+        -2.6002721786499023,
+        -2.5676379203796387,
+        -2.3126375675201416,
+        -2.451533079147339,
+        -2.398275375366211,
+        -2.3975369930267334,
+        -2.440922498703003,
+        -2.4686686992645264,
+        -2.589994430541992,
+        -2.4576425552368164,
+        -2.538292169570923,
+        -2.578627824783325,
+        -2.544895648956299
+      ],
+      "z_rad": [
+        -2.4423470497131348,
+        -2.751535415649414,
+        -2.5866894721984863,
+        -2.5866894721984863,
+        -2.751535415649414,
+        -2.944439172744751,
+        -2.944439172744751,
+        -2.4423470497131348,
+        -2.944439172744751,
+        -2.944439172744751,
+        -2.751535415649414,
+        -2.751535415649414,
+        -2.751535415649414
+      ],
+      "z_fused": [
+        -2.481828212738037,
+        -2.7055611610412598,
+        -2.518176555633545,
+        -2.5529003143310547,
+        -2.6632204055786133,
+        -2.807713747024536,
+        -2.8185601234436035,
+        -2.448927402496338,
+        -2.855828046798706,
+        -2.822740077972412,
+        -2.6982245445251465,
+        -2.708308458328247,
+        -2.6998753547668457
+      ],
+      "probabilities": [
+        0.07714194804430008,
+        0.06264600902795792,
+        0.07459372282028198,
+        0.07223187386989594,
+        0.06517884135246277,
+        0.05690876021981239,
+        0.05632942169904709,
+        0.07951702922582626,
+        0.054380837827920914,
+        0.056107643991708755,
+        0.06307820230722427,
+        0.06248486414551735,
+        0.06298070400953293
+      ],
+      "free_energy": 0.10184597969055176,
+      "shannon_entropy": 0.34579038619995117,
+      "findings": [
+        "Enlarged Cardiomediastinum",
+        "Cardiomegaly",
+        "Lung Opacity",
+        "Lung Lesion",
+        "Edema",
+        "Consolidation",
+        "Pneumonia",
+        "Atelectasis",
+        "Pneumothorax",
+        "Pleural Effusion",
+        "Pleural Other",
+        "Fracture",
+        "Support Devices"
+      ]
+    }
+  },
+  "preprocessing_fidelity": {
+    "psnr_db": 42.2,
+    "mse": 2.7551,
+    "mae": 1.1406,
+    "ssim": 0.9781,
+    "radiograph_snr_db": 38.7,
+    "diagnostic_psnr_db": 43.7,
+    "quality": "Over 40 dB \u2014 Excellent / Optimal Diagnostic Fidelity (Near-Lossless Medical Imaging)",
+    "standard_range": "Over 40 dB: Excellent / Near-lossless (High-end medical imaging standard)"
+  },
+  "output_directory": "C:\\Users\\ponnu\\.gemini\\antigravity\\scratch\\chest-xray-intelligence-studio\\ieee_analytics_output"
+}
